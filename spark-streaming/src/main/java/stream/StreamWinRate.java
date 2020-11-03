@@ -24,7 +24,7 @@ import java.util.Iterator;
 
 public class StreamWinRate extends StreamJobBuilder {
 
-    protected StreamWinRate(JavaStreamingContext jssc) {
+    public StreamWinRate(JavaStreamingContext jssc) {
         super(jssc);
     }
 
@@ -108,12 +108,12 @@ public class StreamWinRate extends StreamJobBuilder {
 
         // TODO Not take top5 and leave it for the frontend
         // TODO Why foreachRDD
-        winRate.foreachRDD((VoidFunction<JavaRDD<Tuple2<String, Double>>>) rdd -> {
-            rdd.sortBy((Function<Tuple2<String, Double>, Double>) t -> {
-                return t._2;
-            }, false, 2).take(5).stream().forEach(x -> System.out.println(x));
-            System.out.println("=================");
-        });
+//        winRate.foreachRDD((VoidFunction<JavaRDD<Tuple2<String, Double>>>) rdd -> {
+//            rdd.sortBy((Function<Tuple2<String, Double>, Double>) t -> {
+//                return t._2;
+//            }, false, 2).take(5).stream().forEach(x -> System.out.println(x));
+//            System.out.println("=================");
+//        });
         winRate.foreachRDD(
                 (VoidFunction<JavaRDD<Tuple2<String, Double>>>) rdd -> {
                     rdd.foreachPartition(
@@ -124,6 +124,7 @@ public class StreamWinRate extends StreamJobBuilder {
                                     JSONObject record = new JSONObject();
                                     record.put("team_name", entry._1);
                                     record.put("win_rate", entry._2);
+                                    System.out.println(record);
                                     kafkaSink.send(new ProducerRecord<>("win_rate", record.toJSONString()));
                                 }
                             }

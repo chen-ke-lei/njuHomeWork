@@ -2,7 +2,7 @@ package stream;
 
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
-abstract class StreamJobBuilder {
+public abstract class StreamJobBuilder {
 
     protected JavaStreamingContext jssc;
 

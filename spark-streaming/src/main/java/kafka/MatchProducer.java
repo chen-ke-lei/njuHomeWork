@@ -32,7 +32,7 @@ public class MatchProducer implements Runnable {
                         String filePath = FileUtil.getMatchPath(dateStr, matchId);
                         producer.send(new ProducerRecord<>(KafKaUtil.SOURCE_TOPIC, FileUtil.readFile(filePath)));
                     }
-                    Thread.sleep(500);
+                    // Thread.sleep(500);
                 }
             }
         } catch (Exception e) {
