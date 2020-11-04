@@ -7,11 +7,6 @@ import util.FileUtil;
 
 public class SparkApp {
 
-    private static Class getClass(String className) throws ClassNotFoundException {
-        Class catClass=Class.forName(className);
-        return catClass;
-    }
-
     public static void main(String[] args) {
         try {
             SparkConf conf = new SparkConf().setAppName("LOLAnal").setMaster("local[4]");
