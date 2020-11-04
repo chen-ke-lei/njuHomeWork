@@ -51,6 +51,7 @@ public class StreamingSiteMessage extends StreamJobBuilder {
                 (Function<ConsumerRecord<String, String>, JSONObject>) mt -> JSONObject.parseObject(mt.value())
         );
 
+        String[] siteMesage = new String[]{"TOP", "JUNGLE", "MIDDLE", "BOTTOM", "SUPPORT"};
 
         JavaDStream<List<Tuple2<String, SiteMessage>>> sitesByGame = matches.map(mat -> {
             List<Tuple2<String, SiteMessage>> res = new ArrayList<>();
@@ -69,8 +70,12 @@ public class StreamingSiteMessage extends StreamJobBuilder {
                 message.setHeal(new Double(stats.getString("totalHeal").replaceAll("[^0-9\\.]", "")));
                 message.setDamageTaken(new Double(stats.getString("totalDamageTaken").replaceAll("[^0-9\\.]", "")));
                 message.calTotalPoint();
-                message.setSite(i + 1);
-                res.add(new Tuple2<>("site" + (i + 1), message));
+                String site = ((JSONObject) bule.getJSONArray("players").get(i)).getString("lane");
+                if (site == null || site.trim().length() == 0) {
+                    site = siteMesage[i];
+                }
+                message.setSite(site);
+                res.add(new Tuple2<>(site, message));
 
             }
             if (res.size() < 5) return res;
@@ -78,7 +83,22 @@ public class StreamingSiteMessage extends StreamJobBuilder {
             for (int i = 0; i < red.getJSONArray("players").size(); i++) {
                 JSONObject stats = ((JSONObject) red.getJSONArray("players").get(i)).getJSONObject("stats");
                 if (stats == null || stats.get("totalHeal") == null) return res;
-                SiteMessage message = res.get(i)._2;
+                SiteMessage message = null;
+                String site = ((JSONObject) red.getJSONArray("players").get(i)).getString("lane");
+                if (site == null || site.trim().length() == 0) {
+                    site = siteMesage[i];
+                }
+                for (int j = 0; j < res.size(); j++)
+                    if (res.get(j)._1.equals(site)) {
+                        message = res.get(j)._2;
+                        break;
+                    }
+                if (message == null) {
+                    message = new SiteMessage();
+                    message.setSite(site);
+                    message.setUpdateTime(playTime);
+                    res.add(new Tuple2<>(site, message));
+                }
                 message.setDamageDealt(message.getDamageDealt() + new Double(stats.getString("totalDamageDealt").replaceAll("[^0-9\\.]", "")));
                 message.setHeal(message.getHeal() + new Double(stats.getString("totalHeal").replaceAll("[^0-9\\.]", "")));
                 message.setDamageTaken(message.getDamageTaken() + new Double(stats.getString("totalDamageTaken").replaceAll("[^0-9\\.]", "")));

@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class SiteMessage implements Serializable {
     double damageDealt;
-    int site;
+    String site;
     double heal;
     double damageTaken;
     double totalPoint;
@@ -26,11 +26,11 @@ public class SiteMessage implements Serializable {
         this.damageDealt = damageDealt;
     }
 
-    public int getSite() {
+    public String getSite() {
         return site;
     }
 
-    public void setSite(int site) {
+    public void setSite(String site) {
         this.site = site;
     }
 
