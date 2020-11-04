@@ -7,13 +7,13 @@ import java.io.IOException;
 
 public class FileUtil {
 
-    //public static String SOURCE_PATH = "/Users/Trayvon/Desktop/matches_simplified";
+    // public static String SOURCE_PATH = "/Users/Trayvon/Desktop/matches_simplified";
     public static String SOURCE_PATH = "C:\\bigdata\\datsets\\matches_simplified";
 
     public static String INDEX_PATH;
 
     public static String CHECK_POINT_PATH = "C:\\bigdata\\checkpoint";
-//    public static String CHECK_POINT_PATH = "/Users/Trayvon/Desktop/streaming_checkpoint";
+    // public static String CHECK_POINT_PATH = "/Users/Trayvon/Desktop/streaming_checkpoint";
 
     static {
         INDEX_PATH = FileUtil.class.getClassLoader().getResource("lol_date_match_map.json").getFile();

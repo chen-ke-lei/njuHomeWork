@@ -7,7 +7,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.*;
-import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.api.java.*;
@@ -20,11 +19,13 @@ import util.KafKaUtil;
 import java.util.Collections;
 import java.util.Iterator;
 
-public class StreamWinRate extends StreamJobBuilder {
+public class StreamTeamWinRate extends StreamJobBuilder {
 
-    public StreamWinRate(JavaStreamingContext jssc) {
+    public StreamTeamWinRate(JavaStreamingContext jssc) {
         super(jssc);
     }
+
+    public StreamTeamWinRate() {}
 
     @Override
     public void buildJob() {
@@ -35,7 +36,7 @@ public class StreamWinRate extends StreamJobBuilder {
                         LocationStrategies.PreferConsistent(),
                         ConsumerStrategies.Subscribe(
                                 Collections.singletonList(KafKaUtil.SOURCE_TOPIC),
-                                KafKaUtil.getConsumerParams("win_rate")
+                                KafKaUtil.getConsumerParams("teamWinRate")
                         )
                 );
 
@@ -63,6 +64,14 @@ public class StreamWinRate extends StreamJobBuilder {
                     return new Tuple2<>(team, 1);
                 });
         JavaPairDStream<String, Integer> teams = buleTeam.union(redTeam);
+
+        // reduce the batch first can reduce the records in the batch
+//        winTeam = winTeam.reduceByKey(
+//                (Function2<Integer, Integer, Integer>) Integer::sum
+//        );
+//        teams = teams.reduceByKey(
+//                (Function2<Integer, Integer, Integer>) Integer::sum
+//        );
 
         /*
           注意要采用State方法才能实现累加，不然仅会统计当前batch。
@@ -94,14 +103,22 @@ public class StreamWinRate extends StreamJobBuilder {
         JavaMapWithStateDStream<String, Integer, Integer, Tuple2<String, Integer>> allWin = winTeam.mapWithState(stateCum);
         JavaMapWithStateDStream<String, Integer, Integer, Tuple2<String, Integer>> allMatch = teams.mapWithState(stateCum);
 
+        // This only includes states updated in the batch
+//        JavaPairDStream<String, Integer> teamWins = allWin.mapToPair(
+//                (PairFunction<Tuple2<String, Integer>, String, Integer>) data -> new Tuple2<>(data._1, data._2)
+//        );
+//        JavaPairDStream<String, Integer> teamMatches = allMatch.mapToPair(
+//                (PairFunction<Tuple2<String, Integer>, String, Integer>) data -> new Tuple2<>(data._1, data._2)
+//        );
+
+        // This will include all states
         JavaPairDStream<String, Integer> teamWins = allWin.stateSnapshots();
         JavaPairDStream<String, Integer> teamMatches = allMatch.stateSnapshots();
 
+        // Calculate the sum and display
         JavaDStream<Tuple2<String, Integer> > sum = teamWins.reduce(
                 (Function2<Tuple2<String, Integer>, Tuple2<String, Integer>, Tuple2<String, Integer>>)
-                        (one ,two) -> {
-                    return new Tuple2<>("sum", one._2 + two._2);
-                        }
+                        (one ,two) -> new Tuple2<>("sum", one._2 + two._2)
         );
         sum.print();
 
@@ -111,8 +128,6 @@ public class StreamWinRate extends StreamJobBuilder {
                         new Tuple2<>(s._1, s._2._1 / (s._2._2 * 1.0))
         );
 
-        // TODO Not take top5 and leave it for the frontend
-        // TODO Why foreachRDD
 //        winRate.foreachRDD((VoidFunction<JavaRDD<Tuple2<String, Double>>>) rdd -> {
 //            rdd.sortBy((Function<Tuple2<String, Double>, Double>) t -> {
 //                return t._2;
@@ -130,7 +145,7 @@ public class StreamWinRate extends StreamJobBuilder {
                                     record.put("team_name", entry._1);
                                     record.put("win_rate", entry._2);
                                     // System.out.println(record);
-                                    kafkaSink.send(new ProducerRecord<>("win_rate", record.toJSONString()));
+                                    kafkaSink.send(new ProducerRecord<>("teamWinRate", record.toJSONString()));
                                 }
                             }
                     );

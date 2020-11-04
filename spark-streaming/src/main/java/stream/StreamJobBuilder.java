@@ -11,8 +11,13 @@ public abstract class StreamJobBuilder {
     protected StreamJobBuilder(JavaStreamingContext jssc) {
         this.jssc = jssc;
     }
+
     protected StreamJobBuilder() {
 
+    }
+
+    public void setJssc(JavaStreamingContext jssc) {
+        this.jssc = jssc;
     }
 
     public abstract void buildJob();
