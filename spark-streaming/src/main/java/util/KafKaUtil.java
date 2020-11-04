@@ -7,8 +7,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class KafKaUtil {
-
+    //获取源文件
     public static String SOURCE_TOPIC = "source";
+    //英雄场次
+    public static String HERO_MATCHES_TOPIC = "heroMatches";
+    //英雄胜率
+    public static String HERO_WIN_RATE_TOPIC = "heroWinRate";
+    //玩家胜场
+    public static String PLAYER_WIN_TOPIC = "playerWin";
+    //1-5号位的伤害 输出 治疗
+    public static String SITE_MASSAGE_TOPIC = "siteMassage";
 
     public static Map<String, Object> getConsumerParams(String jobName) {
         Map<String, Object> kafkaParams = new HashMap<>();
