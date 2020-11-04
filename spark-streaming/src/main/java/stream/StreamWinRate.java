@@ -6,10 +6,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.Optional;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.Function3;
-import org.apache.spark.api.java.function.PairFunction;
-import org.apache.spark.api.java.function.VoidFunction;
+import org.apache.spark.api.java.function.*;
+import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.api.java.*;
@@ -66,14 +64,14 @@ public class StreamWinRate extends StreamJobBuilder {
                 });
         JavaPairDStream<String, Integer> teams = buleTeam.union(redTeam);
 
-        /**
-         * 注意要采用State方法才能实现累加，不然仅会统计当前batch。
-         * 下面我觉得都没需要，设置越多越容易出bug
-         * 如果有初始化的值得需要，可以使用initialState(RDD)来初始化key的；
-         * 可以指定timeout函数，该函数的作用是，如果一个key超过timeout设定的时间没有更新值，那么这个key将会失效。
-         * 这个控制需要在Func中实现，必须使用state.isTimingOut()来判断失效的key值。
-         * 如果在失效时间之后，这个key又有新的值了，则会重新计算。
-         * 如果没有使用isTimingOut，则会报错。
+        /*
+          注意要采用State方法才能实现累加，不然仅会统计当前batch。
+          下面我觉得都没需要，设置越多越容易出bug
+          如果有初始化的值得需要，可以使用initialState(RDD)来初始化key的；
+          可以指定timeout函数，该函数的作用是，如果一个key超过timeout设定的时间没有更新值，那么这个key将会失效。
+          这个控制需要在Func中实现，必须使用state.isTimingOut()来判断失效的key值。
+          如果在失效时间之后，这个key又有新的值了，则会重新计算。
+          如果没有使用isTimingOut，则会报错。
          */
         StateSpec<String, Integer, Integer, Tuple2<String, Integer>> stateCum = StateSpec.function(
                 // String 代表要更新的State对象Key
@@ -99,7 +97,14 @@ public class StreamWinRate extends StreamJobBuilder {
         JavaPairDStream<String, Integer> teamWins = allWin.stateSnapshots();
         JavaPairDStream<String, Integer> teamMatches = allMatch.stateSnapshots();
 
-        // TODO Why filter
+        JavaDStream<Tuple2<String, Integer> > sum = teamWins.reduce(
+                (Function2<Tuple2<String, Integer>, Tuple2<String, Integer>, Tuple2<String, Integer>>)
+                        (one ,two) -> {
+                    return new Tuple2<>("sum", one._2 + two._2);
+                        }
+        );
+        sum.print();
+
         JavaPairDStream<String, Tuple2<Integer, Integer>> joinRes = teamWins.join(teamMatches).filter(x -> x._2._2 > 10);
         JavaDStream<Tuple2<String, Double>> winRate = joinRes.map(
                 (Function<Tuple2<String, Tuple2<Integer, Integer>>, Tuple2<String, Double>>) s ->
@@ -119,12 +124,12 @@ public class StreamWinRate extends StreamJobBuilder {
                     rdd.foreachPartition(
                             (VoidFunction<Iterator<Tuple2<String, Double>>>) entryIt -> {
                                 KafkaSink kafkaSink = KafkaSink.getInstance();
-                                while(entryIt.hasNext()) {
+                                while (entryIt.hasNext()) {
                                     Tuple2<String, Double> entry = entryIt.next();
                                     JSONObject record = new JSONObject();
                                     record.put("team_name", entry._1);
                                     record.put("win_rate", entry._2);
-                                    System.out.println(record);
+                                    // System.out.println(record);
                                     kafkaSink.send(new ProducerRecord<>("win_rate", record.toJSONString()));
                                 }
                             }

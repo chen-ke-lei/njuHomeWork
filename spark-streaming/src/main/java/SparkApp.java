@@ -12,6 +12,7 @@ public class SparkApp {
             SparkConf conf = new SparkConf().setAppName("LOLAnal").setMaster("local[4]");
             conf.set("spark.streaming.concurrentJobs", "2");
             conf.set("spark.scheduler.mode", "FAIR");
+            conf.set("spark.streaming.stopGracefullyOnShutdown", "true");
 
             JavaStreamingContext jssc = new JavaStreamingContext(conf, Durations.seconds(5));
             jssc.sparkContext().setLogLevel("ERROR");
@@ -25,6 +26,7 @@ public class SparkApp {
             job.buildJob();
             jssc.start();
             jssc.awaitTermination();
+            jssc.stop();
         } catch (Exception e) {
             e.printStackTrace();
         }
