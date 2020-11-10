@@ -104,16 +104,16 @@ public class StreamTeamWinRate extends StreamJobBuilder {
         JavaMapWithStateDStream<String, Integer, Integer, Tuple2<String, Integer>> allMatch = teams.mapWithState(stateCum);
 
         // This only includes states updated in the batch
-//        JavaPairDStream<String, Integer> teamWins = allWin.mapToPair(
-//                (PairFunction<Tuple2<String, Integer>, String, Integer>) data -> new Tuple2<>(data._1, data._2)
-//        );
-//        JavaPairDStream<String, Integer> teamMatches = allMatch.mapToPair(
-//                (PairFunction<Tuple2<String, Integer>, String, Integer>) data -> new Tuple2<>(data._1, data._2)
-//        );
+        JavaPairDStream<String, Integer> teamWins = allWin.mapToPair(
+                (PairFunction<Tuple2<String, Integer>, String, Integer>) data -> new Tuple2<>(data._1, data._2)
+        );
+        JavaPairDStream<String, Integer> teamMatches = allMatch.mapToPair(
+                (PairFunction<Tuple2<String, Integer>, String, Integer>) data -> new Tuple2<>(data._1, data._2)
+        );
 
         // This will include all states
-        JavaPairDStream<String, Integer> teamWins = allWin.stateSnapshots();
-        JavaPairDStream<String, Integer> teamMatches = allMatch.stateSnapshots();
+//        JavaPairDStream<String, Integer> teamWins = allWin.stateSnapshots();
+//        JavaPairDStream<String, Integer> teamMatches = allMatch.stateSnapshots();
 
         // Calculate the sum and display
         JavaDStream<Tuple2<String, Integer> > sum = teamWins.reduce(

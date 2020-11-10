@@ -9,7 +9,8 @@ public class SparkApp {
 
     public static void main(String[] args) {
         try {
-            SparkConf conf = new SparkConf().setAppName("LOLAnal").setMaster("local[4]");
+            String master = "local[4]"; // read from cmd?
+            SparkConf conf = new SparkConf().setAppName("LOLAnal").setMaster(master);
             conf.set("spark.streaming.concurrentJobs", "2");
             conf.set("spark.scheduler.mode", "FAIR");
             conf.set("spark.streaming.stopGracefullyOnShutdown", "true");
@@ -24,11 +25,11 @@ public class SparkApp {
 
             // StreamJobBuilder job = new StreamTeamWinRate(jssc);
             // StreamJobBuilder job = new StreamHeroMessage(jssc);
-            // StreamJobBuilder job = new StreamingPlayerWinGame(jssc);
-            // StreamJobBuilder job = new StreamingSiteMessage(jssc);
+            // StreamJobBuilder job = new StreamPlayerWinGame(jssc);
+            // StreamJobBuilder job = new StreamSiteMessage(jssc);
             // job.buildJob();
 
-            String[] jobs = "StreamTeamWinRate,StreamHeroMessage".split(",");  // read from cmd ?
+            String[] jobs = "StreamTeamWinRate".split(",");  // read from cmd?
             for (String className : jobs) {
                 Class catClass = Class.forName("stream." + className);
                 StreamJobBuilder jobBuilder = (StreamJobBuilder) catClass.newInstance();

@@ -16,7 +16,7 @@ public class KafKaUtil {
     //玩家胜场
     public static String PLAYER_WIN_TOPIC = "playerWin";
     //1-5号位的伤害 输出 治疗
-    public static String SITE_MASSAGE_TOPIC = "siteMassage";
+    public static String SITE_MASSAGE_TOPIC = "siteMessage";
 
     public static Map<String, Object> getConsumerParams(String jobName) {
         Map<String, Object> kafkaParams = new HashMap<>();

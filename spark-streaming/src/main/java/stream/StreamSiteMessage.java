@@ -26,12 +26,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class StreamingSiteMessage extends StreamJobBuilder {
-    public StreamingSiteMessage(JavaStreamingContext jssc) {
+public class StreamSiteMessage extends StreamJobBuilder {
+    public StreamSiteMessage(JavaStreamingContext jssc) {
         super(jssc);
     }
 
-    public StreamingSiteMessage() {
+    public StreamSiteMessage() {
 
     }
 

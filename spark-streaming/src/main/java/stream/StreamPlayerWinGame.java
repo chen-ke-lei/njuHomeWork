@@ -26,12 +26,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class StreamingPlayerWinGame extends StreamJobBuilder {
-    public StreamingPlayerWinGame(JavaStreamingContext jssc) {
+public class StreamPlayerWinGame extends StreamJobBuilder {
+    public StreamPlayerWinGame(JavaStreamingContext jssc) {
         super(jssc);
     }
 
-    public StreamingPlayerWinGame() {
+    public StreamPlayerWinGame() {
 
     }
 
