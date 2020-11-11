@@ -9,10 +9,7 @@ import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function3;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
-import org.apache.spark.streaming.api.java.JavaDStream;
-import org.apache.spark.streaming.api.java.JavaInputDStream;
-import org.apache.spark.streaming.api.java.JavaPairDStream;
-import org.apache.spark.streaming.api.java.JavaStreamingContext;
+import org.apache.spark.streaming.api.java.*;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
@@ -132,8 +129,10 @@ public class StreamSiteMessage extends StreamJobBuilder {
 
                         }
         );
-        JavaPairDStream<String, SiteMessage> siteMessageJavaPairDStream = siteMessage.mapWithState(stateCum).stateSnapshots();
-        siteMessageJavaPairDStream.foreachRDD(
+
+        JavaMapWithStateDStream<String, SiteMessage, SiteMessage, Tuple2<String, SiteMessage>> siteMessageStateDStream = siteMessage.mapWithState(stateCum);
+    //    JavaPairDStream<String, SiteMessage> siteMessageJavaPairDStream=siteMessageStateDStream.stateSnapshots();
+        siteMessageStateDStream.foreachRDD(
                 rdd -> {
                     rdd.foreachPartition(it -> {
                         KafkaSink kafkaSink = KafkaSink.getInstance();

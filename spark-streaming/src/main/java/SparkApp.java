@@ -29,7 +29,7 @@ public class SparkApp {
             // StreamJobBuilder job = new StreamSiteMessage(jssc);
             // job.buildJob();
 
-            String[] jobs = "StreamTeamWinRate".split(",");  // read from cmd?
+            String[] jobs = "StreamPlayerWinGame".split(",");  // read from cmd?
             for (String className : jobs) {
                 Class catClass = Class.forName("stream." + className);
                 StreamJobBuilder jobBuilder = (StreamJobBuilder) catClass.newInstance();

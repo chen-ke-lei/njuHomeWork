@@ -96,8 +96,9 @@ public class StreamHeroMessage extends StreamJobBuilder implements Serializable 
                             return Tuple2.apply(key, result);
                         }
         );
-        JavaPairDStream<String, HeroResult> heroResultJavaPairDStream = hero.mapWithState(stateCum).stateSnapshots();
-        heroResultJavaPairDStream.foreachRDD(
+        JavaMapWithStateDStream<String, HeroInfo, HeroResult, Tuple2<String, HeroResult>> heroStateDStream = hero.mapWithState(stateCum);
+        //JavaPairDStream<String, HeroResult> heroResultJavaPairDStream = heroStateDStream.stateSnapshots();
+        heroStateDStream.foreachRDD(
                 rdd -> {
                     rdd.foreachPartition(it -> {
                         KafkaSink kafkaSink = KafkaSink.getInstance();
