@@ -1,5 +1,5 @@
 <template>
-  <div class="hello">
+  <!-- <div class="hello">
     <h1>{{ msg }}</h1>
     <h2>Essential Links</h2>
     <ul>
@@ -80,18 +80,19 @@
         </a>
       </li>
     </ul>
-  </div>
+  </div> -->
+  <siteMessage></siteMessage>
 </template>
 
 <script>
+
+import siteMessage from './SiteMessage.vue'
+
 export default {
   name: 'HelloWorld',
-  data () {
-    return {
-      msg: 'Welcome to Your Vue.js App'
-    }
-  }
+  components: {siteMessage}
 }
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->

@@ -63,7 +63,7 @@ public class StreamSiteMessage extends StreamJobBuilder {
                 if (stats == null || stats.get("totalHeal") == null) return res;
                 SiteMessage message = new SiteMessage();
                 message.setUpdateTime(playTime);
-                message.setDamageDealt(new Double(stats.getString("totalDamageDealt").replaceAll("[^0-9\\.]", "")));
+                message.setDamageDealt(new Double(stats.getString("totalDamageDealtToChampions").replaceAll("[^0-9\\.]", "")));
                 message.setHeal(new Double(stats.getString("totalHeal").replaceAll("[^0-9\\.]", "")));
                 message.setDamageTaken(new Double(stats.getString("totalDamageTaken").replaceAll("[^0-9\\.]", "")));
                 message.calTotalPoint();

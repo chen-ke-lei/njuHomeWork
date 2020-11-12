@@ -2,9 +2,11 @@ package webserver.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import webserver.handle.SiteMessageHandle;
 import webserver.kafka.ControllableConsumer;
 import webserver.socket.MessageSocket;
 import webserver.util.KafKaUtil;
@@ -26,7 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @RestController
 public class ConsumerController {
-
+    @Autowired
+    SiteMessageHandle siteMessageHandle;
     private static final Map<String, ControllableConsumer> consumers = new ConcurrentHashMap<>();
 
     public static void cancel(String socketname) {
@@ -55,6 +58,10 @@ public class ConsumerController {
 
         ControllableConsumer cc = new ControllableConsumer(socketname, topic,
                 records -> {
+                    if (socketname.startsWith("siteMessage")) {
+                        MessageSocket.sendMessage(socketname, siteMessageHandle.handle(records).values().toString());
+                        return null;
+                    }
                     List<String> recordStrs = new ArrayList<>();
                     for (ConsumerRecord<String, String> record : records) {
                         recordStrs.add(record.value());
