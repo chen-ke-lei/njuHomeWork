@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import webserver.handle.PlayerWinHandle;
 import webserver.handle.SiteMessageHandle;
 import webserver.kafka.ControllableConsumer;
 import webserver.socket.MessageSocket;
@@ -30,6 +31,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ConsumerController {
     @Autowired
     SiteMessageHandle siteMessageHandle;
+    @Autowired
+    PlayerWinHandle playerWinHandle;
+
     private static final Map<String, ControllableConsumer> consumers = new ConcurrentHashMap<>();
 
     public static void cancel(String socketname) {
@@ -60,6 +64,10 @@ public class ConsumerController {
                 records -> {
                     if (socketname.startsWith("siteMessage")) {
                         MessageSocket.sendMessage(socketname, siteMessageHandle.handle(records).values().toString());
+                        return null;
+                    }
+                    else if (socketname.startsWith("playerWin")) {
+                        MessageSocket.sendMessage(socketname, playerWinHandle.handle(records));
                         return null;
                     }
                     List<String> recordStrs = new ArrayList<>();
