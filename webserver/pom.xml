@@ -21,6 +21,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.kennycason</groupId>
+            <artifactId>kumo-core</artifactId>
+            <version>1.13</version>
+        </dependency>
+        <dependency>
+            <groupId>com.kennycason</groupId>
+            <artifactId>kumo-tokenizers</artifactId>
+            <version>1.12</version>
+        </dependency>
+        <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.74</version>
