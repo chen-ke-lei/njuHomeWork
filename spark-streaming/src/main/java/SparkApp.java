@@ -1,4 +1,8 @@
 import kafka.MatchProducer;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
 import org.apache.spark.SparkConf;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
@@ -9,9 +13,27 @@ public class SparkApp {
 
     public static void main(String[] args) {
         try {
-            String master = "local[4]"; // read from cmd?
+            CommandLineParser parser = new BasicParser();
+            Options options = new Options();
+            options.addOption("m", "master", true, "master");
+            options.addOption("j", "jobs", true, "jobs for streaming");
+            options.addOption("c", "checkpoint", true, "checkpoint for spark");
+            options.addOption("s", "source", true, "source data path");
+            CommandLine commandLine = parser.parse(options, args);
+
+            String master = commandLine.getOptionValue("m", "local[4]");
+            String jobStr = commandLine.getOptionValue("j", "StreamSiteMessage");
+            String[] jobs = jobStr.split(",");
+            if (commandLine.hasOption("c")) {
+                FileUtil.CHECK_POINT_PATH = commandLine.getOptionValue("c");
+            }
+            FileUtil.createDir(FileUtil.CHECK_POINT_PATH);
+            if (commandLine.hasOption("s")) {
+                FileUtil.SOURCE_PATH = commandLine.getOptionValue("s");
+            }
+
             SparkConf conf = new SparkConf().setAppName("LOLAnal").setMaster(master);
-            conf.set("spark.streaming.concurrentJobs", "2");
+            conf.set("spark.streaming.concurrentJobs", String.valueOf(jobStr.length()));
             conf.set("spark.scheduler.mode", "FAIR");
             conf.set("spark.streaming.stopGracefullyOnShutdown", "true");
 
@@ -29,7 +51,6 @@ public class SparkApp {
             // StreamJobBuilder job = new StreamSiteMessage(jssc);
             // job.buildJob();
 
-            String[] jobs = "StreamSiteMessage".split(",");  // read from cmd?
             for (String className : jobs) {
                 Class catClass = Class.forName("stream." + className);
                 StreamJobBuilder jobBuilder = (StreamJobBuilder) catClass.newInstance();
