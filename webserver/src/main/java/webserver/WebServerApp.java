@@ -8,7 +8,7 @@ import webserver.handle.PlayerWinHandle;
 import java.util.HashMap;
 import java.util.Map;
 
-
+@SpringBootApplication
 public class WebServerApp {
 
     public static void main(String[] args) {
