@@ -67,7 +67,7 @@ public class ConsumerController {
                         return null;
                     }
                     else if (socketname.startsWith("playerWin")) {
-                        MessageSocket.sendMessage(socketname, playerWinHandle.handle(records).values().toString());
+                        MessageSocket.sendMessage(socketname, playerWinHandle.handle(records));
                         return null;
                     }
                     List<String> recordStrs = new ArrayList<>();

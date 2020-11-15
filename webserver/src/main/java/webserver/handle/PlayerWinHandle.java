@@ -12,8 +12,10 @@ import com.kennycason.kumo.palette.LinearGradientColorPalette;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.springframework.stereotype.Component;
+import sun.misc.BASE64Encoder;
 
 import java.awt.*;
+import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,22 +28,8 @@ import java.util.Map;
 @Component
 public class PlayerWinHandle {
 
-    public Map<String, JSONObject> handle(ConsumerRecords<String, String> records) {
-        //此处不设置会出现中文乱码
-        java.awt.Font font = new java.awt.Font("STSong-Light", 2, 18);
+    public String handle(ConsumerRecords<String, String> records)  {
 
-        final Dimension dimension = new Dimension(900, 900);
-        final WordCloud wordCloud = new WordCloud(dimension, CollisionMode.PIXEL_PERFECT);
-        wordCloud.setPadding(2);
-        wordCloud.setBackground(new CircleBackground(255));
-        wordCloud.setFontScalar(new SqrtFontScalar(12, 42));
-        //设置词云显示的三种颜色，越靠前设置表示词频越高的词语的颜色
-        wordCloud.setColorPalette(new LinearGradientColorPalette(Color.RED, Color.BLUE, Color.GREEN, 30, 30));
-
-        wordCloud.setKumoFont(new KumoFont(font));
-        wordCloud.setBackgroundColor(new Color(255, 255, 255));
-        //因为我这边是生成一个圆形,这边设置圆的半径
-        wordCloud.setBackground(new CircleBackground(255));
 
         Map<String, JSONObject> res = new HashMap<>();
         for (ConsumerRecord<String, String> record : records) {
@@ -62,6 +50,27 @@ public class PlayerWinHandle {
             }
 
         }
+
+        return wordCloud(res);
+    }
+
+    public String wordCloud (Map<String, JSONObject> res) {
+        //此处不设置会出现中文乱码
+        java.awt.Font font = new java.awt.Font("STSong-Light", 2, 18);
+
+        final Dimension dimension = new Dimension(900, 900);
+        final WordCloud wordCloud = new WordCloud(dimension, CollisionMode.PIXEL_PERFECT);
+        wordCloud.setPadding(2);
+        wordCloud.setBackground(new CircleBackground(255));
+        wordCloud.setFontScalar(new SqrtFontScalar(12, 42));
+        //设置词云显示的三种颜色，越靠前设置表示词频越高的词语的颜色
+        wordCloud.setColorPalette(new LinearGradientColorPalette(Color.RED, Color.BLUE, Color.GREEN, 30, 30));
+
+        wordCloud.setKumoFont(new KumoFont(font));
+        wordCloud.setBackgroundColor(new Color(255, 255, 255));
+        //因为我这边是生成一个圆形,这边设置圆的半径
+        wordCloud.setBackground(new CircleBackground(255));
+
         List<WordFrequency> wordFrequencies = new ArrayList<>();
         for (Map.Entry<String,JSONObject> temp:res.entrySet()){
             String playerName=temp.getValue().getString("playerName");
@@ -70,6 +79,21 @@ public class PlayerWinHandle {
         }
         wordCloud.build(wordFrequencies);
         wordCloud.writeToFile("src/main/java/webserver/handle/test.png");
-        return res;
+        return imageToBase64Str();
+    }
+    public static String imageToBase64Str() {
+        InputStream inputStream = null;
+        byte[] data = null;
+        try {
+            inputStream = new FileInputStream("src/main/java/webserver/handle/test.png");
+            data = new byte[inputStream.available()];
+            inputStream.read(data);
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // 加密
+        BASE64Encoder encoder = new BASE64Encoder();
+        return encoder.encode(data);
     }
 }
