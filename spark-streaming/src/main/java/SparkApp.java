@@ -41,8 +41,8 @@ public class SparkApp {
             jssc.sparkContext().setLogLevel("ERROR");
             jssc.checkpoint(FileUtil.CHECK_POINT_PATH);
 
-            Thread matchProducer = new Thread(new MatchProducer());
-            matchProducer.start();
+//            Thread matchProducer = new Thread(new MatchProducer());
+//            matchProducer.start();
             System.out.println("----------Match producer starts----------");
 
             // StreamJobBuilder job = new StreamTeamWinRate(jssc);

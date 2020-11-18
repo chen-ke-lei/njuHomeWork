@@ -8,7 +8,7 @@ public class HeroResult implements Serializable {
     private int playNum;
     private int winNum;
     private double winRate;
-    private String updateTime;
+    private String updateTime="00000000";
 
     public String getName() {
         return name;

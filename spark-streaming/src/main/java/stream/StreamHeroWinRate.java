@@ -15,7 +15,6 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import pojo.HeroInfo;
 import pojo.HeroResult;
-import pojo.SiteMessage;
 import scala.Tuple2;
 import util.KafKaUtil;
 
@@ -24,12 +23,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class StreamHeroMessage extends StreamJobBuilder implements Serializable {
-    public StreamHeroMessage(JavaStreamingContext jssc) {
+public class StreamHeroWinRate extends StreamJobBuilder implements Serializable {
+    public StreamHeroWinRate(JavaStreamingContext jssc) {
         super(jssc);
     }
 
-    public StreamHeroMessage() {
+    public StreamHeroWinRate() {
     }
 
     @Override
@@ -39,7 +38,7 @@ public class StreamHeroMessage extends StreamJobBuilder implements Serializable 
                         super.jssc,
                         LocationStrategies.PreferConsistent(),
                         ConsumerStrategies.Subscribe(
-                                Collections.singletonList(KafKaUtil.SOURCE_TOPIC+"-"+KafKaUtil.HERO_MATCHES_TOPIC),
+                                Collections.singletonList(KafKaUtil.SOURCE_TOPIC + "-" + KafKaUtil.HERO_WIN_RATE_TOPIC),
                                 KafKaUtil.getConsumerParams("heroMessage")
                         )
                 );
@@ -110,19 +109,19 @@ public class StreamHeroMessage extends StreamJobBuilder implements Serializable 
                         while (it.hasNext()) {
                             Tuple2<String, HeroResult> entry = it.next();
                             JSONObject playNum = new JSONObject();
-                            playNum.put("hero_id", entry._1);
-                            playNum.put("hero", entry._2.getName());
-                            playNum.put("playNum", entry._2.getPlayNum());
-                            playNum.put("updateTime", entry._2.getUpdateTime());
-                            System.out.println(playNum);
-                            kafkaSink.send(new ProducerRecord<>(KafKaUtil.HERO_MATCHES_TOPIC, playNum.toJSONString()));
-//                            JSONObject winRate = new JSONObject();
-//                            winRate.put("hero_id", entry._1);
-//                            winRate.put("hero", entry._2.getName());
-//                            winRate.put("winRate", entry._2.getWinRate());
-//                            winRate.put("updateTime", entry._2.getUpdateTime());
-//                            System.out.println(winRate);
-//                            kafkaSink.send(new ProducerRecord<>(KafKaUtil.HERO_WIN_RATE_TOPIC, playNum.toJSONString()));
+//                            playNum.put("hero_id", entry._1);
+//                            playNum.put("hero", entry._2.getName());
+//                            playNum.put("playNum", entry._2.getPlayNum());
+//                            playNum.put("updateTime", entry._2.getUpdateTime());
+//                            System.out.println(playNum);
+//                            kafkaSink.send(new ProducerRecord<>(KafKaUtil.HERO_MATCHES_TOPIC, playNum.toJSONString()));
+                            JSONObject winRate = new JSONObject();
+                            winRate.put("hero_id", entry._1);
+                            winRate.put("hero", entry._2.getName());
+                            winRate.put("winRate", entry._2.getWinRate());
+                            winRate.put("updateTime", entry._2.getUpdateTime());
+                            System.out.println(winRate);
+                            kafkaSink.send(new ProducerRecord<>(KafKaUtil.HERO_WIN_RATE_TOPIC, winRate.toJSONString()));
                         }
                     });
 

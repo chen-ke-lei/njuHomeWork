@@ -16,6 +16,7 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import pojo.PlayerMessage;
 import pojo.PlayerResult;
+import pojo.SiteMessage;
 import scala.Tuple2;
 import util.KafKaUtil;
 
@@ -39,7 +40,7 @@ public class StreamPlayerWinGame extends StreamJobBuilder {
                         super.jssc,
                         LocationStrategies.PreferConsistent(),
                         ConsumerStrategies.Subscribe(
-                                Collections.singletonList(KafKaUtil.SOURCE_TOPIC),
+                                Collections.singletonList(KafKaUtil.SOURCE_TOPIC + "-" + KafKaUtil.PLAYER_WIN_TOPIC),
                                 KafKaUtil.getConsumerParams("playerMessage")
                         )
                 );
@@ -76,6 +77,10 @@ public class StreamPlayerWinGame extends StreamJobBuilder {
                             PlayerResult result = state.exists() ? state.get() : new PlayerResult();
                             PlayerMessage cur = curOptional.orElse(null);
                             if (cur != null) {
+                                if ("99999999".equals(cur.getMatchDate())) {
+                                    state.update(result);
+                                    return Tuple2.apply(key, new PlayerResult());
+                                }
                                 result.setWinGames(result.getWinGames() + 1);
                                 result.setPlayerId(cur.getPlayerId());
                                 result.setPlayerName(cur.getPlayerName());

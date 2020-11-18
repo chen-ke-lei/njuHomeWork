@@ -7,6 +7,10 @@ import echarts from 'echarts'
 import axios from 'axios'
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
+import ElementUi from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
+Vue.use(ElementUi)
+
 
 Vue.config.productionTip = false
 
