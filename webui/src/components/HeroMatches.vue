@@ -1,11 +1,51 @@
 <template>
   <div id="heroMatches">
-    <button
+    <span style="font-size: 8px">英雄出场次数</span>
+    <el-date-picker
+      v-model="queryDates"
+      type="daterange"
+      format="yyyy-MM-dd"
+      value-format="yyyyMMdd"
+      range-separator="至"
+      start-placeholder="起始日期"
+      end-placeholder="结束日期"
+      editable="true"
+      :picker-options="yearOptions"
+      size="mini"
+      style="width: 240px"
+    >
+    </el-date-picker>
+    <el-select
+      v-model="queryHeroes"
+      multiple
+      collapse-tags
+      filterable
+      placeholder="请选择英雄"
+      size="mini"
+    >
+      <el-option
+        v-for="item in heroOptions"
+        :key="item"
+        :label="item"
+        :value="item">
+      </el-option>
+    </el-select>
+    <br/>
+    <el-button
+      plain
+      icon="el-icon-video-play"
+      size="mini"
       @click="this.mock"
-      :style="{ marginTop: '30px', height: '40px', width: '70px' }"
     >
       start
-    </button>
+    </el-button>
+    <el-button
+      plain
+      icon="el-icon-video-pause"
+      size="mini"
+    >
+      stop
+    </el-button>
   </div>
 </template>
 
@@ -18,9 +58,9 @@
   import $ from 'jquery'
 
   const config = {
-    SVGWidth: 800,
-    SVGHeight: 600,
-    TimerFontSize: '50px',
+    SVGWidth: 650,
+    SVGHeight: 400,
+    TimerFontSize: '25px',
     MaxNumber: 10,
     Padding: {
       left: 50,
@@ -48,7 +88,24 @@
       // this.createWs()
     },
     data () {
+      const dateShortcuts = []
+      for (let i = 2020; i > 2010; i--) {
+        let option = {}
+        option['text'] = i + ''
+        option['onClick'] = function (picker) {
+          const start = new Date(i, 0, 1)
+          const end = new Date(i, 11, 31)
+          picker.$emit('pick', [start, end])
+        }
+        dateShortcuts.push(option)
+      }
+      const heroes = require('../assets/heroes')
       return {
+        queryDates: [],
+        yearOptions: {shortcuts: dateShortcuts},
+        queryHeroes: [],
+        heroOptions: heroes,
+
         timeStamp: new Date().getTime(),
 
         mini: 0,
@@ -69,7 +126,7 @@
       mock () {
         let iter = 0
         let _this = this
-        let inter = setInterval(function next() {
+        let inter = setInterval(function next () {
           iter++
           let num = Math.floor(Math.random() * 100)
           if (_this.dataOnBoard.length >= config.MaxNumber) {
@@ -86,8 +143,9 @@
           }
           _this.timerCounter = iter
           _this.refresh(_this.dataOnBoard)
-          if (iter >= 100)
-            window.clearInterval(inter);
+          if (iter >= 100) {
+            window.clearInterval(inter)
+          }
         }, 3000 * intervalTime)
       },
       getColorClass (d) {
@@ -133,7 +191,7 @@
           .attr('class', 'timer')
           .attr('font-size', config.TimerFontSize)
           .attr('fill-opacity', 0)
-          .attr('x', innerWidth - 50)
+          .attr('x', innerWidth - 40)
           .attr('y', innerHeight)
       },
       refresh (data) {
@@ -229,7 +287,7 @@
         barEnter.append('text')
           .attr('x', d => _this.xScale(xValue(d)))
           .attr('stroke', function (d) {
-            return $("." + _this.getColorClass(d)).css("fill");
+            return $('.' + _this.getColorClass(d)).css('fill')
           })
           .attr('class', 'barInfo')
           .attr('y', 50)
@@ -359,13 +417,13 @@
 
   .value {
     fill: rgb(138, 46, 46);
-    font-size: 20pt;
+    font-size: 18pt;
     font-weight: 400;
   }
 
   .barInfo {
     fill: rgb(255, 255, 255);
-    font-size: 22pt;
+    font-size: 18pt;
     font-weight: 800;
   }
 
