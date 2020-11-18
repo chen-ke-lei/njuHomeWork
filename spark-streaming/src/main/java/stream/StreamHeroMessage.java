@@ -83,7 +83,7 @@ public class StreamHeroMessage extends StreamJobBuilder implements Serializable 
                             HeroInfo cur = curOptional.orElse(null);
                             if (cur != null) {
                                 if ("99999999".equals(cur.getPlayTime())) {
-                                    state.update(result);
+                                    state.update(new HeroResult());
                                     return Tuple2.apply(key, new HeroResult());
                                 }
                                 result.setPlayNum(result.getPlayNum() + 1);

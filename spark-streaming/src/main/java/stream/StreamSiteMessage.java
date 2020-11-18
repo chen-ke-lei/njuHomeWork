@@ -126,8 +126,8 @@ public class StreamSiteMessage extends StreamJobBuilder {
                                 state.update(cur);
                                 return Tuple2.apply(key, cur);
                             } else {
-                                if ("99999999".equals(cur.getUpdateTime())){
-                                    state.update(result);
+                                if ("99999999".equals(cur.getUpdateTime())) {
+                                    state.update(new SiteMessage());
                                     return Tuple2.apply(key, new SiteMessage());
                                 }
 //                                if (cur.getUpdateTime().compareTo(result.getUpdateTime()) < 0)

@@ -78,7 +78,7 @@ public class StreamPlayerWinGame extends StreamJobBuilder {
                             PlayerMessage cur = curOptional.orElse(null);
                             if (cur != null) {
                                 if ("99999999".equals(cur.getMatchDate())) {
-                                    state.update(result);
+                                    state.update( new PlayerResult());
                                     return Tuple2.apply(key, new PlayerResult());
                                 }
                                 result.setWinGames(result.getWinGames() + 1);

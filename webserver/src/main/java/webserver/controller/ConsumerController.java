@@ -61,7 +61,6 @@ public class ConsumerController {
             return new ResultMsg(ResultMsg.FAILURE, "socket has not established");
 
 
-
         //生成者逻辑开启
         synchronized (this) {
             if (producers.containsKey(msg.getTopic())) {
@@ -149,12 +148,18 @@ public class ConsumerController {
 
     @GetMapping("/stop_consumer")
     public ResultMsg stop(@RequestParam String socketname) {
-        ControllableConsumer cc = consumers.getOrDefault(socketname, null);
-        if (null != cc) {
-            cc.stop();
-            return new ResultMsg(ResultMsg.SUCCESS, "consumer stops");
-        } else
-            return new ResultMsg(ResultMsg.FAILURE, "consumer not exists");
+        String topic = socketname.split("_")[0];
+        ConditionProducer producer = producers.get(topic);
+        if (producer != null) {
+            producer.close();
+            return new ResultMsg(ResultMsg.SUCCESS, "producer stops");
+        }
+//        ControllableConsumer cc = consumers.getOrDefault(socketname, null);
+//        if (null != cc) {
+//            cc.stop();
+//            return new ResultMsg(ResultMsg.SUCCESS, "consumer stops");
+//        } else
+            return new ResultMsg(ResultMsg.FAILURE, "producer not exists");
     }
 
 

@@ -10,17 +10,17 @@
       end-placeholder="结束日期"
     >
     </el-date-picker>
+    <br />
+    <el-button plain icon="el-icon-video-play" size="mini" @click="this.start">
+      start
+    </el-button>
+    <el-button plain icon="el-icon-video-pause" size="mini" @click="this.stop">
+      stop
+    </el-button>
     <div
       ref="siteMessage"
       :style="{ height: height, width: width, margin: 'auto' }"
     ></div>
-
-    <button
-      @click="this.start"
-      :style="{ marginTop: '30px', height: '40px', width: '70px' }"
-    >
-      start!
-    </button>
   </div>
 </template>
 
@@ -50,9 +50,9 @@ export default {
       type: String,
       default: "ws://localhost:8080/websocket/siteMessage_",
     },
-    startWsPath: {
+    serviceHost: {
       type: String,
-      default: "http://localhost:8080/start_consumer/",
+      default: "http://localhost:8080",
     },
   },
   mounted() {
@@ -69,6 +69,7 @@ export default {
       groupId: groupId,
       topic: "siteMessage",
       dateValue: [],
+      load: false,
     };
   },
   methods: {
@@ -256,6 +257,7 @@ export default {
       for (let i = 0; i < 100; i++) this.myChart.setOption(this.option);
     },
     start() {
+      this.load = true;
       this.clear();
       console.log(this.dateValue);
       let data = {
@@ -265,12 +267,23 @@ export default {
         end: this.dateValue[1],
         hero: "",
       };
-      this.$http.post(this.startWsPath, data).then((res) => {
-        console.log(res);
-      });
+      this.$http
+        .post(this.serviceHost + "/start_consumer", data)
+        .then((res) => {
+          console.log(res);
+        });
     },
-    onmessage(msg) {
-      let data = msg.data;
+    stop() {
+      this.load = false;
+      this.$http.get(
+        this.serviceHost +
+          "/stop_consumer?socketname=" +
+          this.topic +
+          "_" +
+          this.groupId
+      );
+    },
+    loadData(data) {
       let jsondata = JSON.parse(data);
       let demage = this.option.series[0].data;
       let taken = this.option.series[1].data;
@@ -303,6 +316,10 @@ export default {
       }
       this.option.series[3].data = rate;
       this.myChart.setOption(this.option);
+    },
+    onmessage(msg) {
+      let data = msg.data;
+      if (this.load) this.loadData(data);
     },
   },
 };
