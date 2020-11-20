@@ -49,7 +49,7 @@ public class ControllableConsumer implements Runnable {
             while (suspend) {
                 this.onSuspend();
             }
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(50));
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(3600));
             this.processRecord.apply(records);
         }
         consumer.close();

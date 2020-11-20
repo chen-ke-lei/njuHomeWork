@@ -15,7 +15,6 @@ import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
 import pojo.HeroInfo;
 import pojo.HeroResult;
-import pojo.SiteMessage;
 import scala.Tuple2;
 import util.KafKaUtil;
 
@@ -75,7 +74,6 @@ public class StreamHeroMessage extends StreamJobBuilder implements Serializable 
             return t.iterator();
         }).mapToPair(t -> t);
 
-
         StateSpec<String, HeroInfo, HeroResult, Tuple2<String, HeroResult>> stateCum = StateSpec.function(
                 (Function3<String, Optional<HeroInfo>, State<HeroResult>, Tuple2<String, HeroResult>>)
                         (key, curOptional, state) -> {
@@ -95,14 +93,14 @@ public class StreamHeroMessage extends StreamJobBuilder implements Serializable 
                                 }
                                 result.setUpdateTime(cur.getPlayTime());
                             }
-
                             state.update(result);
 
                             return Tuple2.apply(key, result);
                         }
         );
         JavaMapWithStateDStream<String, HeroInfo, HeroResult, Tuple2<String, HeroResult>> heroStateDStream = hero.mapWithState(stateCum);
-        //JavaPairDStream<String, HeroResult> heroResultJavaPairDStream = heroStateDStream.stateSnapshots();
+        // JavaPairDStream<String, HeroResult> heroResultJavaPairDStream = heroStateDStream.stateSnapshots();
+        // heroStateDStream.print();
         heroStateDStream.foreachRDD(
                 rdd -> {
                     rdd.foreachPartition(it -> {

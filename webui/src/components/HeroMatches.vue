@@ -9,33 +9,18 @@
       range-separator="至"
       start-placeholder="起始日期"
       end-placeholder="结束日期"
-      editable="true"
+      :editable=true
       :picker-options="yearOptions"
       size="mini"
       style="width: 240px"
     >
     </el-date-picker>
-    <el-select
-      v-model="queryHeroes"
-      multiple
-      collapse-tags
-      filterable
-      placeholder="请选择英雄"
-      size="mini"
-    >
-      <el-option
-        v-for="item in heroOptions"
-        :key="item"
-        :label="item"
-        :value="item">
-      </el-option>
-    </el-select>
     <br/>
     <el-button
       plain
       icon="el-icon-video-play"
       size="mini"
-      @click="this.mock"
+      @click="this.start"
     >
       start
     </el-button>
@@ -43,6 +28,7 @@
       plain
       icon="el-icon-video-pause"
       size="mini"
+      @click="this.stop"
     >
       stop
     </el-button>
@@ -63,7 +49,7 @@
     TimerFontSize: '25px',
     MaxNumber: 10,
     Padding: {
-      left: 50,
+      left: 100,
       right: 80,
       top: 20,
       bottom: 0
@@ -77,15 +63,19 @@
   const innerHeight = config.SVGHeight - config.Padding.top - config.Padding.bottom - 50
   const intervalTime = config.IntervalTime
 
-  const tValue = d => d.updatetime
-  const xValue = d => Number(d.value)
-  const yValue = d => d.name
+  const tValue = d => d.updateTime
+  const xValue = d => Number(d.playNum)
+  const yValue = d => d.hero
 
   export default {
     name: 'HeroMatches',
     mounted () {
       this.initChart()
-      // this.createWs()
+      this.createWs()
+      this.bufferTimer = setInterval(this.processBuffer, 3000 * intervalTime)
+    },
+    beforeDestroy () {
+      window.clearInterval(this.bufferTimer)
     },
     data () {
       const dateShortcuts = []
@@ -99,16 +89,17 @@
         }
         dateShortcuts.push(option)
       }
-      const heroes = require('../assets/heroes')
       return {
         queryDates: [],
         yearOptions: {shortcuts: dateShortcuts},
-        queryHeroes: [],
-        heroOptions: heroes,
 
-        timeStamp: new Date().getTime(),
+        topic: 'playerWin',
+        groupId: new Date().getTime(),
 
         mini: 0,
+        bufferTimer: '',
+        heroOnBoard: {},
+        dataBuffer: [],
         dataOnBoard: [],
 
         xAxis: null,
@@ -132,12 +123,12 @@
           if (_this.dataOnBoard.length >= config.MaxNumber) {
             if (num > _this.mini) {
               _this.dataOnBoard.pop()
-              _this.dataOnBoard.push({'name': String(iter), 'value': num})
+              _this.dataOnBoard.push({'hero': String(iter), 'playNum': num})
               _this.dataOnBoard.sort((x, y) => xValue(y) - xValue(x))
               _this.mini = xValue(_this.dataOnBoard[_this.dataOnBoard.length - 1])
             }
           } else {
-            _this.dataOnBoard.push({'name': String(iter), 'value': num})
+            _this.dataOnBoard.push({'hero': String(iter), 'playNum': num})
             _this.dataOnBoard.sort((x, y) => xValue(y) - xValue(x))
             _this.mini = xValue(_this.dataOnBoard[_this.dataOnBoard.length - 1])
           }
@@ -147,6 +138,48 @@
             window.clearInterval(inter)
           }
         }, 3000 * intervalTime)
+      },
+      processBuffer () {
+        if (this.dataBuffer.length > 0) {
+          let batch = this.dataBuffer.length >= 50 ? 50 : this.dataBuffer.length
+          for (let i = 0; i < batch; i++) {
+            let heroMatches = this.dataBuffer[0]
+            this.dataBuffer.shift()
+
+            // 在榜且值更大
+            if (this.heroOnBoard[yValue(heroMatches)] && this.heroOnBoard[yValue(heroMatches)] >= xValue(heroMatches))
+              continue
+            // 在榜但值较小
+            if (this.heroOnBoard[yValue(heroMatches)] && this.heroOnBoard[yValue(heroMatches)] < xValue(heroMatches)) {
+              // 更新值
+              for (let ind = 0; ind < this.dataOnBoard.length; ind++) {
+                if (yValue(this.dataOnBoard[ind]) === yValue(heroMatches)) {
+                  this.dataOnBoard[yValue(heroMatches)].playNum = xValue(heroMatches)
+                  this.heroOnBoard[yValue(heroMatches)] = xValue(heroMatches)
+                  break
+                }
+              }
+            }
+            // 不在榜
+            else if (!this.heroOnBoard[yValue(heroMatches)]) {
+              if (this.dataOnBoard.length >= config.MaxNumber) {
+                if (xValue(heroMatches) > this.mini) {
+                  let popped = this.dataOnBoard.pop()
+                  delete this.heroOnBoard[yValue(popped)]
+                  this.dataOnBoard.push(heroMatches)
+                  this.heroOnBoard[yValue(heroMatches)] = xValue(heroMatches)
+                }
+              } else {
+                this.dataOnBoard.push(heroMatches)
+                this.heroOnBoard[yValue(heroMatches)] = xValue(heroMatches)
+              }
+            }
+            this.dataOnBoard.sort((x, y) => xValue(y) - xValue(x))
+            this.timerCounter = tValue(heroMatches)
+            this.mini = xValue(this.dataOnBoard[this.dataOnBoard.length - 1])
+          }
+        }
+        this.refresh(this.dataOnBoard)
       },
       getColorClass (d) {
         let tmp = 0
@@ -348,14 +381,19 @@
           })
       },
       clear () {
+        this.mini = 0
+        this.heroOnBoard = {}
+        this.dataBuffer = []
+        this.dataOnBoard = []
         d3.select('svg').remove()
+        this.initChart()
       },
       createWs () {
         if (typeof WebSocket === 'undefined') {
           alert('当前浏览器不支持WebSocket')
           return
         }
-        this.socket = new WebSocket('ws://localhost:8080/websocket/heroMatches_' + this.timeStamp)
+        this.socket = new WebSocket('ws://localhost:8080/websocket/' + this.topic + '_' + this.groupId)
         this.socket.onopen = function () {
           console.log('socket 创建成功')
         }
@@ -368,24 +406,33 @@
         }
       },
       onmessage (msg) {
-        let jsonStrArr = JSON.parse(msg)
-        for (let i = 0; i < jsonStrArr.length; i++) {
-          let heroMatches = JSON.parse(jsonStrArr[i])
-          if (this.dataOnBoard.length >= config.MaxNumber) {
-            if (xValue(heroMatches) > this.mini) {
-              this.dataOnBoard.pop()
-              this.dataOnBoard.push(heroMatches)
-              this.dataOnBoard.sort((x, y) => xValue(y) - xValue(x))
-              this.mini = xValue(this.dataOnBoard[this.dataOnBoard.length - 1])
-            }
-          } else {
-            this.dataOnBoard.push(heroMatches)
-            this.dataOnBoard.sort((x, y) => xValue(y) - xValue(x))
-            this.mini = xValue(this.dataOnBoard[this.dataOnBoard.length - 1])
-          }
-          this.timerCounter = tValue(heroMatches)
+        let jsonArr = JSON.parse(msg.data)
+        for (let i = 0; i < jsonArr.length; i++) {
+          let heroMatches = jsonArr[i]
+          this.dataBuffer.push(heroMatches)
         }
-        this.refresh(this.dataOnBoard)
+      },
+      start () {
+        this.clear()
+        let data = {
+          topic: this.topic,
+          groupId: this.groupId + '',
+          start: this.queryDates[0] ? this.queryDates[0] : '',
+          end: this.queryDates[1] ? this.queryDates[1] : '',
+          hero: '',
+        }
+        this.$http
+          .post('/api/start_consumer', data)
+          .then((res) => {
+          })
+      },
+      stop () {
+        this.$http.get(
+          'api/stop_consumer?socketname=' +
+          this.topic +
+          '_' +
+          this.groupId
+        )
       }
     }
   }
@@ -402,7 +449,7 @@
 
   .tick text {
     fill: #8E8883;
-    font-size: 12pt;
+    font-size: 8pt;
   }
 
   .days {
@@ -417,13 +464,13 @@
 
   .value {
     fill: rgb(138, 46, 46);
-    font-size: 18pt;
+    font-size: 13pt;
     font-weight: 400;
   }
 
   .barInfo {
     fill: rgb(255, 255, 255);
-    font-size: 18pt;
+    font-size: 13pt;
     font-weight: 800;
   }
 

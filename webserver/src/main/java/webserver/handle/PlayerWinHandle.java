@@ -16,10 +16,8 @@ import sun.misc.BASE64Encoder;
 
 import java.awt.*;
 import java.io.*;
+import java.util.*;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author nan
@@ -73,13 +71,16 @@ public class PlayerWinHandle {
 
         List<WordFrequency> wordFrequencies = new ArrayList<>();
         for (Map.Entry<String,JSONObject> temp:res.entrySet()){
-            String playerName=temp.getValue().getString("playerName");
-            int win=temp.getValue().getInteger("win");
-            wordFrequencies.add(new WordFrequency(playerName,win));
+            String playerName=temp.getValue().getString("play_name");
+            int win=temp.getValue().getInteger("winGames");
+            WordFrequency wordFrequency=new WordFrequency(playerName,win);
+            System.out.println(wordFrequency.toString());
+            wordFrequencies.add(wordFrequency);
         }
         wordCloud.build(wordFrequencies);
-        wordCloud.writeToFile("src/main/java/webserver/handle/test.png");
-        return imageToBase64Str();
+        String date=new Date().toString();
+        wordCloud.writeToFile("/Users/Trayvon/Desktop/test/test" +date + ".png");
+        return "success";
     }
     public static String imageToBase64Str() {
         InputStream inputStream = null;
