@@ -8,7 +8,7 @@ public class SiteMessage implements Serializable {
     double heal;
     double damageTaken;
     double totalPoint;
-    String updateTime;
+    String updateTime = "00000000";
 
     public String getUpdateTime() {
         return updateTime;

@@ -1,15 +1,26 @@
 <template>
   <div>
+    <el-date-picker
+      v-model="dateValue"
+      size="small"
+      type="daterange"
+      value-format="yyyy-MM-dd"
+      range-separator="至"
+      start-placeholder="开始日期"
+      end-placeholder="结束日期"
+    >
+    </el-date-picker>
+    <br />
+    <el-button plain icon="el-icon-video-play" size="mini" @click="this.start">
+      start
+    </el-button>
+    <el-button plain icon="el-icon-video-pause" size="mini" @click="this.stop">
+      stop
+    </el-button>
     <div
       ref="siteMessage"
       :style="{ height: height, width: width, margin: 'auto' }"
     ></div>
-    <button
-      @click="this.start"
-      :style="{ marginTop: '30px', height: '40px', width: '70px' }"
-    >
-      start!
-    </button>
   </div>
 </template>
 
@@ -29,19 +40,19 @@ export default {
     },
     width: {
       type: String,
-      default: "600px",
+      default: "480px",
     },
     height: {
       type: String,
-      default: "400px",
+      default: "330px",
     },
     createWspath: {
       type: String,
       default: "ws://localhost:8080/websocket/siteMessage_",
     },
-    startWsPath: {
+    serviceHost: {
       type: String,
-      default: "/api/start_consumer?socketname=siteMessage_",
+      default: "http://localhost:8080",
     },
   },
   mounted() {
@@ -49,13 +60,16 @@ export default {
     this.createWs();
   },
   data() {
-    let timeStamp = new Date().getTime();
-    this.createWspath = this.createWspath + timeStamp;
-    this.startWsPath = this.startWsPath + timeStamp;
+    let groupId = new Date().getTime();
+    this.createWspath = this.createWspath + groupId;
     return {
       myChart: null,
       option: null,
       socket: null,
+      groupId: groupId,
+      topic: "siteMessage",
+      dateValue: [],
+      load: false,
     };
   },
   methods: {
@@ -64,18 +78,18 @@ export default {
       if (chart) {
         this.myChart = this.$echarts.init(chart);
         this.option = {
-          backgroundColor: "#1C1C1C",
+          //   backgroundColor: "#" + (0xffffff - 0x1c1c1c),
           title: {
             text: "位置信息统计",
             textStyle: {
-              color: "#828282",
+              color: "#2F4F4F",
               fontSize: 15,
             },
           },
           legend: {
             data: ["伤害", "承伤", "治疗"],
             textStyle: {
-              color: "#A4D3EE",
+              color: "#8B7355",
             },
           },
           tooltip: {
@@ -106,7 +120,7 @@ export default {
               axisLine: {
                 show: true,
                 lineStyle: {
-                  color: "#fff",
+                  color: "#363636",
                 },
               },
             },
@@ -117,14 +131,14 @@ export default {
               axisTick: {},
               axisLine: {
                 lineStyle: {
-                  color: "#DCDCDC",
+                  color: "#1C1C1C",
                 },
               },
               splitLine: {
                 show: true,
                 lineStyle: {
                   type: "dashed",
-                  color: "#aaa",
+                  color: "#1C1C1C",
                 },
               },
             },
@@ -139,13 +153,13 @@ export default {
               itemStyle: {
                 normal: {
                   show: true,
-                  color: "#A52A2A",
+                  color: "#EE7600",
                   //   barBorderRadius: 50,
                   borderWidth: 0,
-                  borderColor: "#333",
+                  borderColor: "#EE7600",
                 },
               },
-              barWidth: "30%",
+              barWidth: "50%",
             },
             {
               name: "承伤",
@@ -155,10 +169,10 @@ export default {
               itemStyle: {
                 normal: {
                   show: true,
-                  color: "#FFDAB9",
+                  color: "#6C7B8B",
                   //   barBorderRadius: 50,
                   borderWidth: 0,
-                  borderColor: "#333",
+                  borderColor: "#6C7B8B",
                 },
               },
               barWidth: "30%",
@@ -172,10 +186,10 @@ export default {
               itemStyle: {
                 normal: {
                   show: true,
-                  color: "#20B2AA",
+                  color: "#EE6AA7",
                   barBorderRadius: [20, 20, 0, 0],
                   borderWidth: 0,
-                  borderColor: "#333",
+                  borderColor: "##EE6AA7",
                 },
               },
               barWidth: "30%",
@@ -199,9 +213,9 @@ export default {
                       return (params.data * 100).toFixed(2) + "%";
                     }
                   },
-                  fontSize: 14,
+                  fontSize: 10,
                   fontWeight: "bold",
-                  textStyle: { color: "#199ED8" },
+                  textStyle: { color: "#00BFFF" },
                 },
               },
               itemStyle: {
@@ -235,14 +249,41 @@ export default {
         console.log("socket 退出");
       };
     },
-    start() {
-      this.$http({
-        methods: "get",
-        url: this.startWsPath,
-      }).then((res) => {});
+    clear() {
+      this.option.series[0].data = [];
+      this.option.series[1].data = [];
+      this.option.series[2].data = [];
+      this.option.series[3].data = [];
+      for (let i = 0; i < 100; i++) this.myChart.setOption(this.option);
     },
-    onmessage(msg) {
-      let data = msg.data;
+    start() {
+      this.load = true;
+      this.clear();
+      console.log(this.dateValue);
+      let data = {
+        topic: this.topic,
+        groupId: this.groupId + "",
+        start: this.dateValue[0],
+        end: this.dateValue[1],
+        hero: "",
+      };
+      this.$http
+        .post(this.serviceHost + "/start_consumer", data)
+        .then((res) => {
+          console.log(res);
+        });
+    },
+    stop() {
+      this.load = false;
+      this.$http.get(
+        this.serviceHost +
+          "/stop_consumer?socketname=" +
+          this.topic +
+          "_" +
+          this.groupId
+      );
+    },
+    loadData(data) {
       let jsondata = JSON.parse(data);
       let demage = this.option.series[0].data;
       let taken = this.option.series[1].data;
@@ -275,6 +316,10 @@ export default {
       }
       this.option.series[3].data = rate;
       this.myChart.setOption(this.option);
+    },
+    onmessage(msg) {
+      let data = msg.data;
+      if (this.load) this.loadData(data);
     },
   },
 };

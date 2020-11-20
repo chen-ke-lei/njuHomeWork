@@ -1,4 +1,4 @@
-package util;
+package webserver.util;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,17 +6,14 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class FileUtil {
-
+    public static String INDEX_PATH;
+    public static String INIT_PATH;
     // public static String SOURCE_PATH = "/Users/Trayvon/Desktop/matches_simplified";
     public static String SOURCE_PATH = "C:\\bigdata\\datsets\\matches_simplified";
 
-    // public static String CHECK_POINT_PATH = "/Users/Trayvon/Desktop/streaming_checkpoint";
-    public static String CHECK_POINT_PATH = "C:\\bigdata\\checkpoint";
-
-    public static String INDEX_PATH;
-
     static {
         INDEX_PATH = FileUtil.class.getClassLoader().getResource("lol_date_match_map.json").getFile();
+        INIT_PATH = FileUtil.class.getClassLoader().getResource("end.json").getFile();
     }
 
     public static String getMatchPath(String dateStr, String matchId) {
@@ -35,11 +32,4 @@ public class FileUtil {
         return buffer.toString();
     }
 
-    public static boolean createDir(String path) {
-        File file = new File(path);
-        if (!file.exists()) {
-            return file.mkdirs();
-        }
-        return true;
-    }
 }

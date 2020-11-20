@@ -3,20 +3,21 @@ package webserver.controller;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import webserver.handle.PlayerWinHandle;
 import webserver.handle.SiteMessageHandle;
+import webserver.kafka.ConditionProducer;
 import webserver.kafka.ControllableConsumer;
 import webserver.socket.MessageSocket;
-import webserver.util.KafKaUtil;
+import webserver.util.CommenUtil;
+import webserver.util.ConditionMsg;
 import webserver.util.ResultMsg;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ------------------
@@ -35,6 +36,7 @@ public class ConsumerController {
     PlayerWinHandle playerWinHandle;
 
     private static final Map<String, ControllableConsumer> consumers = new ConcurrentHashMap<>();
+    private static final Map<String, ConditionProducer> producers = new ConcurrentHashMap<>();
 
     public static void cancel(String socketname) {
         try {
@@ -49,24 +51,41 @@ public class ConsumerController {
         }
     }
 
-    @GetMapping("/start_consumer")
-    public ResultMsg start(@RequestParam String socketname) {
-        if (!MessageSocket.socketExists(socketname))
+    @PostMapping("/start_consumer")
+    @ResponseBody
+    public ResultMsg start(@RequestBody ConditionMsg msg) {
+        if (msg == null) return new ResultMsg(ResultMsg.FAILURE, "param is Null");
+        if (CommenUtil.isEmptyString(msg.getTopic())) return new ResultMsg(ResultMsg.FAILURE, "topic is Null");
+        if (CommenUtil.isEmptyString(msg.getGroupId())) return new ResultMsg(ResultMsg.FAILURE, "groupId is Null");
+        if (!MessageSocket.socketExists(msg.getTopic() + "_" + msg.getGroupId()))
             return new ResultMsg(ResultMsg.FAILURE, "socket has not established");
-        String[] parts = socketname.split("_");
-        if (parts.length != 2 || !KafKaUtil.isValidTopic(parts[0]))
-            return new ResultMsg(ResultMsg.FAILURE, "socketname is invalid");
-        String topic = parts[0];
+
+
+        //生成者逻辑开启
+        synchronized (this) {
+            if (producers.containsKey(msg.getTopic())) {
+                producers.get(msg.getTopic()).close();
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        ConditionProducer producer = new ConditionProducer(msg);
+        new Thread(producer).start();
+        producers.put(msg.getTopic(), producer);
+
+        String socketname = msg.getTopic() + "_" + msg.getGroupId();
         if (null != consumers.getOrDefault(socketname, null))
             return new ResultMsg(ResultMsg.SUCCESS, "consumer exists");
 
-        ControllableConsumer cc = new ControllableConsumer(socketname, topic,
+        ControllableConsumer cc = new ControllableConsumer(socketname, msg.getTopic(),
                 records -> {
                     if (socketname.startsWith("siteMessage")) {
                         MessageSocket.sendMessage(socketname, siteMessageHandle.handle(records).values().toString());
                         return null;
-                    }
-                    else if (socketname.startsWith("playerWin")) {
+                    } else if (socketname.startsWith("playerWin")) {
                         MessageSocket.sendMessage(socketname, playerWinHandle.handle(records));
                         return null;
                     }
@@ -129,11 +148,19 @@ public class ConsumerController {
 
     @GetMapping("/stop_consumer")
     public ResultMsg stop(@RequestParam String socketname) {
-        ControllableConsumer cc = consumers.getOrDefault(socketname, null);
-        if (null != cc) {
-            cc.stop();
-            return new ResultMsg(ResultMsg.SUCCESS, "consumer stops");
-        } else
-            return new ResultMsg(ResultMsg.FAILURE, "consumer not exists");
+        String topic = socketname.split("_")[0];
+        ConditionProducer producer = producers.get(topic);
+        if (producer != null) {
+            producer.close();
+            return new ResultMsg(ResultMsg.SUCCESS, "producer stops");
+        }
+//        ControllableConsumer cc = consumers.getOrDefault(socketname, null);
+//        if (null != cc) {
+//            cc.stop();
+//            return new ResultMsg(ResultMsg.SUCCESS, "consumer stops");
+//        } else
+            return new ResultMsg(ResultMsg.FAILURE, "producer not exists");
     }
+
+
 }

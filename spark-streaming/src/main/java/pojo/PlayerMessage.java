@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class PlayerMessage implements Serializable {
     String playerName;
     String playerId;
-    String matchDate;
+    String matchDate="00000000";
 
     public String getPlayerName() {
         return playerName;

@@ -6,7 +6,7 @@ public class HeroInfo implements Serializable {
     private String name;
     private String id;
     private boolean win;
-    private String playTime;
+    private String playTime="00000000";
 
     public String getName() {
         return name;

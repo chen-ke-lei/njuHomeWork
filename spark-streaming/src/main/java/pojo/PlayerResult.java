@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class PlayerResult implements Serializable {
     String playerName;
     String playerId;
-    String updateTime;
+    String updateTime="00000000";
     int winGames;
 
     public String getPlayerName() {

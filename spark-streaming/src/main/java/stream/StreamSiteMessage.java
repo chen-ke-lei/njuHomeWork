@@ -39,7 +39,7 @@ public class StreamSiteMessage extends StreamJobBuilder {
                         super.jssc,
                         LocationStrategies.PreferConsistent(),
                         ConsumerStrategies.Subscribe(
-                                Collections.singletonList(KafKaUtil.SOURCE_TOPIC),
+                                Collections.singletonList(KafKaUtil.SOURCE_TOPIC + "-" + KafKaUtil.SITE_MASSAGE_TOPIC),
                                 KafKaUtil.getConsumerParams("siteMessage")
                         )
                 );
@@ -116,13 +116,26 @@ public class StreamSiteMessage extends StreamJobBuilder {
                             SiteMessage result = state.exists() ? state.get() : null;
                             SiteMessage cur = curOptional.orElse(null);
                             if (cur == null) {
+                                result = new SiteMessage();
                                 return Tuple2.apply(key, result);
                             } else if (result == null) {
+                                if ("99999999".equals(cur.getUpdateTime())) {
+                                    state.update(result);
+                                    return Tuple2.apply(key, new SiteMessage());
+                                }
                                 state.update(cur);
                                 return Tuple2.apply(key, cur);
                             } else {
+                                if ("99999999".equals(cur.getUpdateTime())) {
+                                    state.update(new SiteMessage());
+                                    return Tuple2.apply(key, new SiteMessage());
+                                }
+//                                if (cur.getUpdateTime().compareTo(result.getUpdateTime()) < 0)
+//                                    result = new SiteMessage();
+
                                 result.update(cur);
                                 state.update(result);
+
                                 return Tuple2.apply(key, result);
                             }
 
@@ -131,7 +144,7 @@ public class StreamSiteMessage extends StreamJobBuilder {
         );
 
         JavaMapWithStateDStream<String, SiteMessage, SiteMessage, Tuple2<String, SiteMessage>> siteMessageStateDStream = siteMessage.mapWithState(stateCum);
-    //    JavaPairDStream<String, SiteMessage> siteMessageJavaPairDStream=siteMessageStateDStream.stateSnapshots();
+        //    JavaPairDStream<String, SiteMessage> siteMessageJavaPairDStream=siteMessageStateDStream.stateSnapshots();
         siteMessageStateDStream.foreachRDD(
                 rdd -> {
                     rdd.foreachPartition(it -> {

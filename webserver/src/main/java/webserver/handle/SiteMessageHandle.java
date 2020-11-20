@@ -15,7 +15,7 @@ public class SiteMessageHandle {
         Map<String, JSONObject> res = new HashMap<>();
         for (ConsumerRecord<String, String> record : records) {
             try {
-                System.out.println(record.value());
+           //     System.out.println(record.value());
                 JSONObject tmp = JSON.parseObject(record.value());
                 if (tmp != null) {
                     String site = tmp.getString("site");
