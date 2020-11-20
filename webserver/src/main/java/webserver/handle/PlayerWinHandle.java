@@ -37,7 +37,8 @@ public class PlayerWinHandle {
                 System.out.println(record.value());
                 JSONObject tmp = JSON.parseObject(record.value());
                 if (tmp != null) {
-                    String playerId = tmp.getString("playerId");
+                    String playerId = tmp.getString("play_id");
+                    System.out.println(playerId);
                     if (!res.containsKey(playerId)) res.put(playerId, tmp);
                     else {
                         String lastDate = res.get(playerId).getString("updateTime");
@@ -73,9 +74,12 @@ public class PlayerWinHandle {
 
         List<WordFrequency> wordFrequencies = new ArrayList<>();
         for (Map.Entry<String,JSONObject> temp:res.entrySet()){
-            String playerName=temp.getValue().getString("playerName");
-            int win=temp.getValue().getInteger("win");
-            wordFrequencies.add(new WordFrequency(playerName,win));
+            String playerName=temp.getValue().getString("play_name");
+            int win=temp.getValue().getInteger("winGames");
+            WordFrequency wordFrequency=new WordFrequency(playerName,win);
+            System.out.println(wordFrequency.toString());
+            wordFrequencies.add(wordFrequency);
+
         }
         wordCloud.build(wordFrequencies);
         wordCloud.writeToFile("src/main/java/webserver/handle/test.png");

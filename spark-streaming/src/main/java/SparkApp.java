@@ -22,7 +22,7 @@ public class SparkApp {
             CommandLine commandLine = parser.parse(options, args);
 
             String master = commandLine.getOptionValue("m", "local[4]");
-            String jobStr = commandLine.getOptionValue("j", "StreamSiteMessage");
+            String jobStr = commandLine.getOptionValue("j", "StreamSiteMessage,StreamPlayerWinGame");
             String[] jobs = jobStr.split(",");
             if (commandLine.hasOption("c")) {
                 FileUtil.CHECK_POINT_PATH = commandLine.getOptionValue("c");
