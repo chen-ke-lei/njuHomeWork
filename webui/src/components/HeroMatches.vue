@@ -72,10 +72,9 @@
     mounted () {
       this.initChart()
       this.createWs()
-      this.bufferTimer = setInterval(this.processBuffer, 3000 * intervalTime)
     },
     beforeDestroy () {
-      window.clearInterval(this.bufferTimer)
+      if (this.bufferTimer) window.clearInterval(this.bufferTimer)
     },
     data () {
       const dateShortcuts = []
@@ -93,7 +92,7 @@
         queryDates: [],
         yearOptions: {shortcuts: dateShortcuts},
 
-        topic: 'playerWin',
+        topic: 'heroMatches',
         groupId: new Date().getTime(),
 
         mini: 0,
@@ -141,20 +140,21 @@
       },
       processBuffer () {
         if (this.dataBuffer.length > 0) {
-          let batch = this.dataBuffer.length >= 50 ? 50 : this.dataBuffer.length
+          let batch = this.dataBuffer.length >= 10 ? 10 : this.dataBuffer.length
           for (let i = 0; i < batch; i++) {
             let heroMatches = this.dataBuffer[0]
             this.dataBuffer.shift()
 
             // 在榜且值更大
-            if (this.heroOnBoard[yValue(heroMatches)] && this.heroOnBoard[yValue(heroMatches)] >= xValue(heroMatches))
+            if (this.heroOnBoard[yValue(heroMatches)] && this.heroOnBoard[yValue(heroMatches)] >= xValue(heroMatches)) {
               continue
+            }
             // 在榜但值较小
             if (this.heroOnBoard[yValue(heroMatches)] && this.heroOnBoard[yValue(heroMatches)] < xValue(heroMatches)) {
               // 更新值
               for (let ind = 0; ind < this.dataOnBoard.length; ind++) {
                 if (yValue(this.dataOnBoard[ind]) === yValue(heroMatches)) {
-                  this.dataOnBoard[yValue(heroMatches)].playNum = xValue(heroMatches)
+                  this.dataOnBoard[ind].playNum = xValue(heroMatches)
                   this.heroOnBoard[yValue(heroMatches)] = xValue(heroMatches)
                   break
                 }
@@ -425,6 +425,7 @@
           .post('/api/start_consumer', data)
           .then((res) => {
           })
+        this.bufferTimer = setInterval(this.processBuffer, 3000 * intervalTime)
       },
       stop () {
         this.$http.get(
@@ -433,6 +434,8 @@
           '_' +
           this.groupId
         )
+        if (this.bufferTimer) window.clearInterval(this.bufferTimer)
+        this.bufferTimer = ''
       }
     }
   }

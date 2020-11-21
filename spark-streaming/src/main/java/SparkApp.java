@@ -22,8 +22,8 @@ public class SparkApp {
             CommandLine commandLine = parser.parse(options, args);
 
             String master = commandLine.getOptionValue("m", "local[4]");
-            // String defaultJobs = "StreamHeroMessage,StreamHeroWinRate,StreamPlayerWinGame,StreamSiteMessage";
-            String defaultJobs = "StreamHeroMessage,StreamPlayerWinGame";
+            // String defaultJobs = "StreamHeroMatches,StreamHeroWinRate,StreamPlayerWinGame,StreamSiteMessage";
+            String defaultJobs = "StreamHeroMatches,StreamPlayerWinGame,StreamHeroWinRate,StreamSiteMessage";
             String jobStr = commandLine.getOptionValue("j", defaultJobs);
             String[] jobs = jobStr.split(",");
             if (commandLine.hasOption("c")) {
@@ -39,7 +39,7 @@ public class SparkApp {
             conf.set("spark.scheduler.mode", "FAIR");
             conf.set("spark.streaming.stopGracefullyOnShutdown", "true");
 
-            JavaStreamingContext jssc = new JavaStreamingContext(conf, Durations.seconds(5));
+            JavaStreamingContext jssc = new JavaStreamingContext(conf, Durations.seconds(1));
             jssc.sparkContext().setLogLevel("ERROR");
             jssc.checkpoint(FileUtil.CHECK_POINT_PATH);
 
@@ -48,7 +48,7 @@ public class SparkApp {
 //            System.out.println("----------Match producer starts----------");
 
             // StreamJobBuilder job = new StreamTeamWinRate(jssc);
-            // StreamJobBuilder job = new StreamHeroMessage(jssc);
+            // StreamJobBuilder job = new StreamHeroMatches(jssc);
             // StreamJobBuilder job = new StreamPlayerWinGame(jssc);
             // StreamJobBuilder job = new StreamSiteMessage(jssc);
             // job.buildJob();
