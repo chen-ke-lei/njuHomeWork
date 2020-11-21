@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div id="test">
-      <img :src="'data:image/png;base64,'+ qrcode"/>
+    <div id="pic">
+      <img src="'data:image/png;base64,'+qrcode">
     </div>
     <button
       @click="this.start"
@@ -16,7 +16,7 @@
   // import { site_option } from "../echarts/echartsUtil.js";
   // alert(site_option);
   export default {
-    name: "defaultImg",
+    name: "PlayerWin",
     props: {
       className: {
         type: String,
@@ -66,8 +66,9 @@
         };
       },
       start() {
+        this.clear()
         this.$http({
-          methods: "get",
+          methods: "post",
           url: this.startWsPath,
         }).then((res) => {});
       },
