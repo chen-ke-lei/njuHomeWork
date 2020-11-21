@@ -55,10 +55,14 @@ export default {
       type: String,
       default: "http://localhost:8080",
     },
-    title:{
-      type:String,
-      default:""
-    }
+    title: {
+      type: String,
+      default: "位置信息统计",
+    },
+    time: {
+      type: String,
+      default: "",
+    },
   },
   mounted() {
     this.initChart();
@@ -66,16 +70,16 @@ export default {
   },
   data() {
     let groupId = new Date().getTime();
-    const dateShortcuts = []
+    const dateShortcuts = [];
     for (let i = 2020; i > 2010; i--) {
-      let option = {}
-      option['text'] = i + ''
-      option['onClick'] = function (picker) {
-        const start = new Date(i, 0, 1)
-        const end = new Date(i, 11, 31)
-        picker.$emit('pick', [start, end])
-      }
-      dateShortcuts.push(option)
+      let option = {};
+      option["text"] = i + "";
+      option["onClick"] = function (picker) {
+        const start = new Date(i, 0, 1);
+        const end = new Date(i, 11, 31);
+        picker.$emit("pick", [start, end]);
+      };
+      dateShortcuts.push(option);
     }
     this.createWspath = this.createWspath + groupId;
     return {
@@ -85,7 +89,7 @@ export default {
       groupId: groupId,
       topic: "siteMessage",
       dateValue: [],
-      dateOptions: {shortcuts: dateShortcuts},
+      dateOptions: { shortcuts: dateShortcuts },
       load: false,
     };
   },
@@ -97,10 +101,10 @@ export default {
         this.option = {
           //   backgroundColor: "#" + (0xffffff - 0x1c1c1c),
           title: {
-            text: "位置信息统计 ",
+            text: this.title + this.time,
             textStyle: {
               color: "#2F4F4F",
-              fontSize: 15,
+              fontSize: 12,
             },
           },
           legend: {
@@ -275,6 +279,7 @@ export default {
     },
     start() {
       this.load = true;
+      this.time = "";
       this.clear();
       console.log(this.dateValue);
       let data = {
@@ -316,6 +321,8 @@ export default {
           x = 2;
         } else if (re.site == "SUPPORT") x = 3;
         else x = 4;
+        if (this.time == "" || this.time < re.updateTime)
+          this.time = re.updateTime;
         demage[x] = re.damageDealt;
         taken[x] = re.damageTaken;
         heal[x] = re.heal;
@@ -323,6 +330,7 @@ export default {
       this.option.series[0].data = demage;
       this.option.series[1].data = taken;
       this.option.series[2].data = heal;
+      this.option.title.text = this.title + "-" + this.time;
       let rate = this.option.series[3].data;
       let sum = 0;
       for (let i = 0; i < 5; i++) {
