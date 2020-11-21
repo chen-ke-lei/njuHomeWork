@@ -55,6 +55,10 @@ export default {
       type: String,
       default: "http://localhost:8080",
     },
+    title:{
+      type:String,
+      default:""
+    }
   },
   mounted() {
     this.initChart();
@@ -93,7 +97,7 @@ export default {
         this.option = {
           //   backgroundColor: "#" + (0xffffff - 0x1c1c1c),
           title: {
-            text: "位置信息统计",
+            text: "位置信息统计 ",
             textStyle: {
               color: "#2F4F4F",
               fontSize: 15,
@@ -166,10 +170,10 @@ export default {
               itemStyle: {
                 normal: {
                   show: true,
-                  color: "#EE7600",
+                  color: "darkred",
                   //   barBorderRadius: 50,
                   borderWidth: 0,
-                  borderColor: "#EE7600",
+                  borderColor: "darkred",
                 },
               },
               barWidth: "50%",
@@ -182,10 +186,10 @@ export default {
               itemStyle: {
                 normal: {
                   show: true,
-                  color: "#6C7B8B",
+                  color: "darkblue",
                   //   barBorderRadius: 50,
                   borderWidth: 0,
-                  borderColor: "#6C7B8B",
+                  borderColor: "darkblue",
                 },
               },
               barWidth: "30%",
@@ -199,10 +203,10 @@ export default {
               itemStyle: {
                 normal: {
                   show: true,
-                  color: "#EE6AA7",
+                  color: "darkgreen",
                   barBorderRadius: [20, 20, 0, 0],
                   borderWidth: 0,
-                  borderColor: "##EE6AA7",
+                  borderColor: "darkgreen",
                 },
               },
               barWidth: "30%",
