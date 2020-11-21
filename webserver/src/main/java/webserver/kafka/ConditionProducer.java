@@ -75,6 +75,8 @@ public class ConditionProducer implements Runnable {
         System.out.println("生成者线程以开启" + msg);
         String init = FileUtil.readFile(FileUtil.INIT_PATH);
         producer.send(new ProducerRecord<>(this.send_topic, init));
+        init = FileUtil.readFile(FileUtil.INIT_PATH_2);
+        producer.send(new ProducerRecord<>(this.send_topic, init));
       //  System.out.println(init);
 
         try {

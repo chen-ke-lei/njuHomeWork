@@ -7,11 +7,11 @@ import java.io.IOException;
 
 public class FileUtil {
 
-    public static String SOURCE_PATH = "/Users/Trayvon/Desktop/matches_simplified";
-    // public static String SOURCE_PATH = "C:\\bigdata\\datsets\\matches_simplified";
+    //public static String SOURCE_PATH = "/Users/Trayvon/Desktop/matches_simplified";
+    public static String SOURCE_PATH = "C:\\bigdata\\datsets\\matches_simplified";
 
-    public static String CHECK_POINT_PATH = "/Users/Trayvon/Desktop/streaming_checkpoint";
-    // public static String CHECK_POINT_PATH = "C:\\bigdata\\checkpoint";
+   // public static String CHECK_POINT_PATH = "/Users/Trayvon/Desktop/streaming_checkpoint";
+     public static String CHECK_POINT_PATH = "C:\\bigdata\\checkpoint";
 
     public static String INDEX_PATH;
 
