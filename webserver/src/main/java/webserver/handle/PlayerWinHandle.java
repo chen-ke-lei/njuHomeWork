@@ -32,10 +32,9 @@ public class PlayerWinHandle {
         Map<String, JSONObject> res = new HashMap<>();
         for (ConsumerRecord<String, String> record : records) {
             try {
-                System.out.println(record.value());
                 JSONObject tmp = JSON.parseObject(record.value());
                 if (tmp != null) {
-                    String playerId = tmp.getString("playerId");
+                    String playerId = tmp.getString("play_id");
                     if (!res.containsKey(playerId)) res.put(playerId, tmp);
                     else {
                         String lastDate = res.get(playerId).getString("updateTime");
@@ -48,7 +47,7 @@ public class PlayerWinHandle {
             }
 
         }
-
+        System.out.println(res.toString());
         return wordCloud(res);
     }
 
@@ -73,10 +72,17 @@ public class PlayerWinHandle {
         for (Map.Entry<String,JSONObject> temp:res.entrySet()){
             String playerName=temp.getValue().getString("play_name");
             int win=temp.getValue().getInteger("winGames");
-            WordFrequency wordFrequency=new WordFrequency(playerName,win);
-            System.out.println(wordFrequency.toString());
-            wordFrequencies.add(wordFrequency);
+            if(playerName==null)
+            {
+                ;
+            }else{
+                WordFrequency wordFrequency=new WordFrequency(playerName,win);
+                System.out.println(wordFrequency.toString());
+                wordFrequencies.add(wordFrequency);
+            }
+
         }
+        System.out.println(wordFrequencies);
         wordCloud.build(wordFrequencies);
         String date=new Date().toString();
         wordCloud.writeToFile("/Users/Trayvon/Desktop/test/test" +date + ".png");
