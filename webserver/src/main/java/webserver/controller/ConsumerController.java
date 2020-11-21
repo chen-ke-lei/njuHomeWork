@@ -5,6 +5,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import webserver.handle.HeroMatchesHandle;
+import webserver.handle.HeroWinRateHandle;
 import webserver.handle.PlayerWinHandle;
 import webserver.handle.SiteMessageHandle;
 import webserver.kafka.ConditionProducer;
@@ -37,6 +38,8 @@ public class ConsumerController {
     PlayerWinHandle playerWinHandle;
     @Autowired
     HeroMatchesHandle heroMatchesHandle;
+    @Autowired
+    HeroWinRateHandle heroWinRateHandle;
 
     private static final Map<String, ControllableConsumer> consumers = new ConcurrentHashMap<>();
     private static final Map<String, ConditionProducer> producers = new ConcurrentHashMap<>();
@@ -94,6 +97,10 @@ public class ConsumerController {
                         return null;
                     } else if (socketname.startsWith("heroMatches")) {
                         MessageSocket.sendMessage(socketname, heroMatchesHandle.handle(records));
+                        return null;
+                    }
+                    else if (socketname.startsWith("heroWinRate")) {
+                        MessageSocket.sendMessage(socketname, heroWinRateHandle.handle(records).values().toString());
                         return null;
                     }
                     List<String> recordStrs = new ArrayList<>();

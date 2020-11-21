@@ -1,28 +1,117 @@
 <template>
-  <div id="myChart"></div>
+  <div id="heroWinRate">
+    <span style="font-size: 8px">英雄胜率</span>
+    <el-date-picker
+      v-model="queryDates"
+      type="daterange"
+      format="yyyy-MM-dd"
+      value-format="yyyyMMdd"
+      range-separator="至"
+      start-placeholder="起始日期"
+      end-placeholder="结束日期"
+      :editable="true"
+      :picker-options="yearOptions"
+      size="mini"
+      style="width: 240px"
+    >
+    </el-date-picker>
+    <el-select
+      v-model="queryHeroes"
+      multiple
+      collapse-tags
+      filterable
+      placeholder="请选择英雄"
+      size="mini"
+    >
+      <el-option
+        v-for="item in heroOptions"
+        :key="item"
+        :label="item"
+        :value="item">
+      </el-option>
+    </el-select>
+    <br/>
+    <el-button
+      plain
+      icon="el-icon-video-play"
+      size="mini"
+      @click="this.mock"
+    >
+      start
+    </el-button>
+    <el-button
+      plain
+      icon="el-icon-video-pause"
+      size="mini"
+      @click="this.stop"
+    >
+      stop
+    </el-button>
+    <div id="myChart"></div>
+  </div>
+
 </template>
 
 <script>
   import echarts from 'echarts'
   export default {
     name: 'HeroWinRate',
+    props: {
+      createWspath: {
+        type: String,
+        default: "ws://192.168.0.101:8080/websocket/heroWinRate_",
+      },
+
+      serviceHost: {
+        type: String,
+        default: "http://192.168.0.101:8080",
+      },
+    },
+
     data () {
+      const dateShortcuts = []
+      for (let i = 2020; i > 2010; i--) {
+        let option = {}
+        option['text'] = i + ''
+        option['onClick'] = function (picker) {
+          const start = new Date(i, 0, 1)
+          const end = new Date(i, 11, 31)
+          picker.$emit('pick', [start, end])
+        }
+        dateShortcuts.push(option)
+      }
+      const heroes = require('../assets/heroes')
+
+      let groupId = new Date().getTime();
+      this.createWspath = this.createWspath + groupId;
+
+
       return {
+        bufferTimer: '',
+        dataBuffer: [],
+        queryDates: [],
+        yearOptions: {shortcuts: dateShortcuts},
+        queryHeroes: [],
+        heroOptions: heroes,
         // 实时数据数组
         date: [],
         yieldRate: [],
         // 折线图echarts初始化选项
-        createWspath: {
-          type: String,
-          default: "ws://localhost:8080/websocket/heroWinRate_",
-        },
-        startWsPath: {
-          type: String,
-          default: "/api/start_consumer?socketname=heroWinRate_",
-        },
+
+
+        socket: null,
+        groupId: groupId,
+        topic: "heroWinRate",
+        load: false,
+
         echartsOption: {
+          /*          animation: true,
+                    animationDuration: 1000,
+                    animationEasing: 'cubicInOut',
+                    animationDurationUpdate: 1000,
+                    animationEasingUpdate: 'cubicInOut',*/
           legend: {
-            data: ['英雄胜率'],
+            data: [],
           },
           xAxis: {
             name: '时间',
@@ -52,12 +141,24 @@
             trigger: 'axis',
           },
           series: [
-            {
-              name:'英雄胜率',
+            /*{
+              name:'1',
               type:'line',
               smooth: false,
               data: this.yieldRate,	// 绑定实时数据数组
             },
+            {
+              name:'2',
+              type:'line',
+              smooth: false,
+              data: [],	// 绑定实时数据数组
+            },
+            {
+              name:'3',
+              type:'line',
+              smooth: false,
+              data: [],	// 绑定实时数据数组
+            },*/
           ]
         }
       }
@@ -65,11 +166,68 @@
     mounted () {
       this.myChart = echarts.init(document.getElementById('myChart'), 'light');	// 初始化echarts, theme为light
       this.myChart.setOption(this.echartsOption);	// echarts设置初始化选项
-      setInterval(this.test1, 1500);	// 每三秒更新实时数据到折线图
-/*      this.test();*/
+            this.createWs();
+
+      /*setInterval(this.test1, 1500);*/
+      /*      this.test();*/
+    },
+    beforeDestroy () {
+      window.clearInterval(this.bufferTimer)
     },
     methods: {
+      mock(){
+        if(this.queryHeroes.length>5){alert("最多可选择5个英雄！")}
+        else {
+          this.load = true;
+          let data = {
+            topic: this.topic,
+            groupId: this.groupId + "",
+            start: this.queryDates[0] ? this.queryDates[0] : '',
+            end: this.queryDates[1] ? this.queryDates[1] : '',
+            hero: this.queryHeroes.join(","),
+          };
+
+          //初始化legend、横纵坐标、databuffer
+          this.echartsOption.legend.data = this.queryHeroes;
+          let newSeries=[];
+          for(let i=0;i<this.queryHeroes.length;i++){
+            let newS={
+              name:this.queryHeroes[i],
+              type:'line',
+              smooth: false,
+              data: [],
+            }
+            newSeries.push(newS);
+          }
+          this.echartsOption.series=newSeries;
+          this.date=[];
+          this.dataBuffer=[];
+          this.echartsOption.xAxis=this.date;
+          this.myChart.setOption(this.echartsOption);
+          /*setInterval(this.test1, 1500);*/
+
+          this.bufferTimer = setInterval(this.processBuffer, 3000 * intervalTime)
+
+          this.$http
+            .post(this.serviceHost + "/start_consumer", data)
+            .then((res) => {
+              console.log(res);
+            });
+        }
+      },
+      stop(){
+        window.clearInterval(this.bufferTimer)
+        this.load = false;
+        this.$http.get(
+          this.serviceHost +
+          "/stop_consumer?socketname=" +
+          this.topic +
+          "_" +
+          this.groupId
+        );
+      },
       createWs() {
+        alert(this.createWspath)
         if (typeof WebSocket === "undefined") {
           return;
         }
@@ -87,20 +245,89 @@
           console.log("socket 退出");
         };
       },
-      start() {
-        this.$http({
-          methods: "get",
-          url: this.startWsPath,
-        }).then((res) => {});
+
+      processBuffer () {
+        if (this.dataBuffer.length > 0) {
+          let batch = this.dataBuffer.length >= 50 ? 50 : this.dataBuffer.length;
+
+          //初始化最近的日期
+          if(this.date.length>0){
+            let latestTime=this.date[this.date.length-1];
+          }
+          else
+          let latestTime="20100101";
+
+
+          for (let j=0;j<this.echartsOption.series.length;j++) {
+            let c=0;
+
+            //倒序，取最新的胜率数据
+            for(let i = batch-1; i >=0; i--){
+
+              //判断英雄名是否相同
+              if(this.dataBuffer[i].hero===this.echartsOption.series[j].name){
+
+                //判断新数据的updatetime是否比当前最近日期大；或者胜率数据是否有改变; 或者当前英雄没有胜率
+                if(this.dataBuffer[i].updateTime>=latestTime
+                ||this.echartsOption.series[j].data.length===0
+                  ||this.dataBuffer[i].winRate!=this.echartsOption.series[j].data[this.echartsOption.series[j].data.length-1]) {
+                  console.log(this.echartsOption.series[j].name);
+
+                  //记录胜率
+                  this.echartsOption.series[j].data.push((this.dataBuffer[i].winRate * 100).toFixed(3));
+
+                  //判断最新时间是否可以更新
+                  if (latestTime < this.dataBuffer[i].updateTime) {
+                    latestTime = this.dataBuffer[i].updateTime;
+                  }
+                  break;
+                }
+              }
+              c=c+1;
+            }
+
+            //如果当前批次没有该英雄的胜率数据
+            if(c===batch){
+
+              //如果该英雄目前还没有胜率数据，设为0
+              if(this.echartsOption.series[j].data.length===0){
+                console.log(this.echartsOption.series[j].name);
+                this.echartsOption.series[j].data.push(0);
+              }
+
+              //如果该英雄有数据，则取最近一次胜率数据，保持不变
+              else{
+                console.log(this.echartsOption.series[j].name);
+                let lastIndex=this.echartsOption.series[j].data.length;
+                this.echartsOption.series[j].data.push(this.echartsOption.series[j].data[lastIndex-1]);
+              }
+            }
+
+          }
+
+          //添加最新时间为横坐标值
+          this.date.push(latestTime);
+          this.echartsOption.xAxis.data = this.date;
+
+          //绘制折线图
+          this.myChart.setOption(this.echartsOption);
+
+          //循环删除buffer当前批次数据
+          for(let x=0;x<batch;x++) {
+            this.dataBuffer.shift();
+          }
+
+
+        }
       },
 
       test(){
-        var testData=[{"winRate":0.5,"updateTime":2011},
-                      {"winRate":0.6,"updateTime":2012},
-                      {"winRate":0.2,"updateTime":2012.06},
-                      {"winRate":0.7,"updateTime":2018}]
+        let testData=[{"winRate":0.5,"updateTime":2011},
+          {"winRate":0.6,"updateTime":2012},
+          {"winRate":0.2,"updateTime":2012.06},
+          {"winRate":0.7,"updateTime":2018}]
 
-        for(var i = 0; i < 4; i++) {
+        for(let i = 0; i < 4; i++) {
 
 
           this.yieldRate.push((testData[i].winRate * 100).toFixed(3));
@@ -113,7 +340,7 @@
       },
 
       test1(){
-        var testData=[{"winRate":0.5,"updateTime":2011},
+        let testData=[{"winRate":0.5,"updateTime":2011},
           {"winRate":0.6,"updateTime":2012},
           {"winRate":0.2,"updateTime":2012.06},
           {"winRate":0.7,"updateTime":2018},
@@ -127,12 +354,12 @@
 
 
 
-          this.yieldRate.push((testData[Math.floor(Math.random()*10)].winRate * 100).toFixed(3));
-          this.date.push(testData[Math.floor(Math.random()*10)].updateTime);
-          // 重新将数组赋值给echarts选项
-          this.echartsOption.xAxis.data = this.date;
-          this.echartsOption.series[0].data = this.yieldRate;
-          this.myChart.setOption(this.echartsOption);
+        this.yieldRate.push((testData[Math.floor(Math.random()*10)].winRate * 100).toFixed(3));
+        this.date.push(testData[Math.floor(Math.random()*10)].updateTime);
+        // 重新将数组赋值给echarts选项
+        this.echartsOption.xAxis.data = this.date;
+        this.echartsOption.series[0].data = this.yieldRate;
+        this.myChart.setOption(this.echartsOption);
 
       },
 
@@ -141,20 +368,33 @@
 
 
       onmessage(msg) {
-        let data = msg.data;
-        let jsondata = JSON.parse(data);
-        this.yieldRate.push((jsondata.winRate * 100).toFixed(3));
-        this.date.push(jsondata.updateTime);
-        // 重新将数组赋值给echarts选项
-        this.echartsOption.xAxis.data = this.date;
-        this.echartsOption.series[0].data = this.yieldRate;
-        this.myChart.setOption(this.echartsOption);
+        if(this.load) {
+          let data = msg.data;
+          let jsondata = JSON.parse(data);
+          for (let i = 0; i < jsondata.length; i++) {
+            let singleData=JSON.parse(jsondata[i]);
+            for (let j = 0; j < this.echartsOption.series.length; j++) {
+              if(singleData.hasOwnProperty('hero')) {
+
+                if (this.echartsOption.series[j].name === singleData.hero) {
+                  this.dataBuffer.push(singleData);
+                }
+              }
+            }
+          }
+/*          this.yieldRate.push((jsondata.winRate * 100).toFixed(3));
+          this.date.push(jsondata.updateTime);
+          // 重新将数组赋值给echarts选项
+          this.echartsOption.xAxis.data = this.date;
+          this.echartsOption.series[0].data = this.yieldRate;
+          this.myChart.setOption(this.echartsOption);*/
+        }
       },
 
       // 获取当前时间
       getTime : function() {
-        var ts = arguments[0] || 0;
-        var t, h, i, s;
+        let ts = arguments[0] || 0;
+        let t, h, i, s;
         t = ts ? new Date(ts * 1000) : new Date();
         h = t.getHours();
         i = t.getMinutes();
