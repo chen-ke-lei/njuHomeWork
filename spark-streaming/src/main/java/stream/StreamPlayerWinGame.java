@@ -8,12 +8,14 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function3;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.api.java.*;
 import org.apache.spark.streaming.kafka010.ConsumerStrategies;
 import org.apache.spark.streaming.kafka010.KafkaUtils;
 import org.apache.spark.streaming.kafka010.LocationStrategies;
+import pojo.HeroResult;
 import pojo.PlayerMessage;
 import pojo.PlayerResult;
 import pojo.SiteMessage;
@@ -96,8 +98,9 @@ public class StreamPlayerWinGame extends StreamJobBuilder {
 
 
         JavaMapWithStateDStream<String, PlayerMessage, PlayerResult, Tuple2<String, PlayerResult>> playersWithStateDStream = players.mapWithState(stateCum);
+        JavaPairDStream<String, PlayerResult> playersWithStatePairDStream = playersWithStateDStream.mapToPair((PairFunction<Tuple2<String, PlayerResult>, String, PlayerResult>) data -> new Tuple2<>(data._1, data._2)).reduceByKey((t1, t2) -> t1);
         //JavaPairDStream<String, PlayerResult> playerResultJavaPairDStream = playersWithStateDStream.stateSnapshots();
-        playersWithStateDStream.foreachRDD(
+        playersWithStatePairDStream.foreachRDD(
                 rdd -> {
                     rdd.foreachPartition(it -> {
                         KafkaSink kafkaSink = KafkaSink.getInstance();

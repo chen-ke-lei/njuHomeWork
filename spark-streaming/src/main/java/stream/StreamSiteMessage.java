@@ -7,6 +7,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function3;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.api.java.*;
@@ -144,8 +145,9 @@ public class StreamSiteMessage extends StreamJobBuilder {
         );
 
         JavaMapWithStateDStream<String, SiteMessage, SiteMessage, Tuple2<String, SiteMessage>> siteMessageStateDStream = siteMessage.mapWithState(stateCum);
+        JavaPairDStream<String, SiteMessage> siteMessageStatePairDStream = siteMessageStateDStream.mapToPair((PairFunction<Tuple2<String, SiteMessage>, String, SiteMessage>) data -> new Tuple2<>(data._1, data._2)).reduceByKey((t1, t2) -> t1);
         //    JavaPairDStream<String, SiteMessage> siteMessageJavaPairDStream=siteMessageStateDStream.stateSnapshots();
-        siteMessageStateDStream.foreachRDD(
+        siteMessageStatePairDStream.foreachRDD(
                 rdd -> {
                     rdd.foreachPartition(it -> {
                         KafkaSink kafkaSink = KafkaSink.getInstance();

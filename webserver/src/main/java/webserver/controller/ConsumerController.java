@@ -92,7 +92,6 @@ public class ConsumerController {
                         MessageSocket.sendMessage(socketname, siteMessageHandle.handle(records).values().toString());
                         return null;
                     } else if (socketname.startsWith("playerWin")) {
-                        System.out.println("22112");
                         MessageSocket.sendMessage(socketname, playerWinHandle.handle(records));
                         return null;
                     } else if (socketname.startsWith("heroMatches")) {

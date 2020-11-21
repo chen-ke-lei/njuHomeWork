@@ -5,12 +5,14 @@ import java.io.*;
 public class FileUtil {
     public static String INDEX_PATH;
     public static String INIT_PATH;
-    public static String SOURCE_PATH = "/Users/Trayvon/Desktop/matches_simplified";
-    // public static String SOURCE_PATH = "C:\\bigdata\\datsets\\matches_simplified";
+    public static String PLAYER_HERO_EDGE_PATH;
+    // public static String SOURCE_PATH = "/Users/Trayvon/Desktop/matches_simplified";
+    public static String SOURCE_PATH = "C:\\bigdata\\datsets\\matches_simplified";
 
     static {
         INDEX_PATH = FileUtil.class.getClassLoader().getResource("lol_date_match_map.json").getFile();
         INIT_PATH = FileUtil.class.getClassLoader().getResource("end.json").getFile();
+        PLAYER_HERO_EDGE_PATH = FileUtil.class.getClassLoader().getResource("player_hero_edge.json").getFile();
     }
 
     public static String getMatchPath(String dateStr, String matchId) {

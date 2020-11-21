@@ -6,7 +6,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.spark.api.java.Optional;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.Function3;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.State;
 import org.apache.spark.streaming.StateSpec;
 import org.apache.spark.streaming.api.java.*;
@@ -39,7 +41,7 @@ public class StreamHeroWinRate extends StreamJobBuilder implements Serializable 
                         LocationStrategies.PreferConsistent(),
                         ConsumerStrategies.Subscribe(
                                 Collections.singletonList(KafKaUtil.SOURCE_TOPIC + "-" + KafKaUtil.HERO_WIN_RATE_TOPIC),
-                                KafKaUtil.getConsumerParams("heroMessage")
+                                KafKaUtil.getConsumerParams("heroWinRate")
                         )
                 );
 
@@ -74,7 +76,6 @@ public class StreamHeroWinRate extends StreamJobBuilder implements Serializable 
             return t.iterator();
         }).mapToPair(t -> t);
 
-
         StateSpec<String, HeroInfo, HeroResult, Tuple2<String, HeroResult>> stateCum = StateSpec.function(
                 (Function3<String, Optional<HeroInfo>, State<HeroResult>, Tuple2<String, HeroResult>>)
                         (key, curOptional, state) -> {
@@ -101,8 +102,10 @@ public class StreamHeroWinRate extends StreamJobBuilder implements Serializable 
                         }
         );
         JavaMapWithStateDStream<String, HeroInfo, HeroResult, Tuple2<String, HeroResult>> heroStateDStream = hero.mapWithState(stateCum);
+
+        JavaPairDStream<String, HeroResult> heroStatePairDStream = heroStateDStream.mapToPair((PairFunction<Tuple2<String, HeroResult>, String, HeroResult>) data -> new Tuple2<>(data._1, data._2)).reduceByKey((t1, t2) -> t1);
         //JavaPairDStream<String, HeroResult> heroResultJavaPairDStream = heroStateDStream.stateSnapshots();
-        heroStateDStream.foreachRDD(
+        heroStatePairDStream.foreachRDD(
                 rdd -> {
                     rdd.foreachPartition(it -> {
                         KafkaSink kafkaSink = KafkaSink.getInstance();

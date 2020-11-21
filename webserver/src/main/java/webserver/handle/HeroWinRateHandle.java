@@ -44,16 +44,16 @@ public class HeroWinRateHandle {
             }
 
         }
-        for(String hero:res.keySet()){
-            if(res.get(hero).getString("updateTime").compareTo(latestDate)<0){
-                JSONObject tmp=res.get(hero);
-                tmp.put("updateTime",latestDate);
-                res.put(hero,tmp);
-            }
-            else {
-                latestDate=res.get(hero).getString("updateTime");
-            }
-        }
+//        for(String hero:res.keySet()){
+//            if(res.get(hero).getString("updateTime").compareTo(latestDate)<0){
+//                JSONObject tmp=res.get(hero);
+//                tmp.put("updateTime",latestDate);
+//                res.put(hero,tmp);
+//            }
+//            else {
+//                latestDate=res.get(hero).getString("updateTime");
+//            }
+//        }
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
