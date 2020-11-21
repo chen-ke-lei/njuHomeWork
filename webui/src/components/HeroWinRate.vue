@@ -206,7 +206,7 @@
           this.myChart.setOption(this.echartsOption);
           /*setInterval(this.test1, 1500);*/
 
-          this.bufferTimer = setInterval(this.processBuffer, 3000 * intervalTime)
+          this.bufferTimer = setInterval(this.processBuffer, 5000)
 
           this.$http
             .post(this.serviceHost + "/start_consumer", data)
@@ -227,7 +227,6 @@
         );
       },
       createWs() {
-        alert(this.createWspath)
         if (typeof WebSocket === "undefined") {
           return;
         }
@@ -248,14 +247,18 @@
 
       processBuffer () {
         if (this.dataBuffer.length > 0) {
-          let batch = this.dataBuffer.length >= 50 ? 50 : this.dataBuffer.length;
+          let batch = this.dataBuffer.length >= 20 ? 20 : this.dataBuffer.length;
+
+          let hasChange=false;
 
           //初始化最近的日期
+          let latestTime;
           if(this.date.length>0){
-            let latestTime=this.date[this.date.length-1];
+            latestTime=this.date[this.date.length-1];
           }
-          else
-          let latestTime="20100101";
+          else {
+            latestTime = "20100101";
+          }
 
 
           for (let j=0;j<this.echartsOption.series.length;j++) {
@@ -267,37 +270,46 @@
               //判断英雄名是否相同
               if(this.dataBuffer[i].hero===this.echartsOption.series[j].name){
 
-                //判断新数据的updatetime是否比当前最近日期大；或者胜率数据是否有改变; 或者当前英雄没有胜率
-                if(this.dataBuffer[i].updateTime>=latestTime
-                ||this.echartsOption.series[j].data.length===0
-                  ||this.dataBuffer[i].winRate!=this.echartsOption.series[j].data[this.echartsOption.series[j].data.length-1]) {
-                  console.log(this.echartsOption.series[j].name);
+                //判断新数据的updatetime是否比当前最近日期大；并且胜率数据是否有改变; 或者当前英雄没有胜率
+                if(this.dataBuffer[i].updateTime>latestTime){
+
+                  //console.log(this.echartsOption.series[j].name+": "+this.dataBuffer[i].winRate);
 
                   //记录胜率
                   this.echartsOption.series[j].data.push((this.dataBuffer[i].winRate * 100).toFixed(3));
+                  hasChange=true;
 
                   //判断最新时间是否可以更新
                   if (latestTime < this.dataBuffer[i].updateTime) {
                     latestTime = this.dataBuffer[i].updateTime;
                   }
-                  break;
+
+
+               }else{
+                  if(this.echartsOption.series[j].data.length===0
+                    ||this.dataBuffer[i].winRate!=this.echartsOption.series[j].data[this.echartsOption.series[j].data.length-1]){
+                    //记录胜率
+                    this.echartsOption.series[j].data.push((this.dataBuffer[i].winRate * 100).toFixed(3));
+                    hasChange=true;
+                  }
                 }
+                break;
               }
               c=c+1;
             }
 
             //如果当前批次没有该英雄的胜率数据
-            if(c===batch){
+            if(c===batch&&hasChange){
 
               //如果该英雄目前还没有胜率数据，设为0
               if(this.echartsOption.series[j].data.length===0){
-                console.log(this.echartsOption.series[j].name);
+                //console.log(this.echartsOption.series[j].name+": "+0);
                 this.echartsOption.series[j].data.push(0);
               }
 
               //如果该英雄有数据，则取最近一次胜率数据，保持不变
               else{
-                console.log(this.echartsOption.series[j].name);
+                //console.log(this.echartsOption.series[j].name+": "+this.echartsOption.series[j].data[lastIndex-1]);
                 let lastIndex=this.echartsOption.series[j].data.length;
                 this.echartsOption.series[j].data.push(this.echartsOption.series[j].data[lastIndex-1]);
               }
@@ -310,6 +322,7 @@
           this.echartsOption.xAxis.data = this.date;
 
           //绘制折线图
+          //console.log(latestTime);
           this.myChart.setOption(this.echartsOption);
 
           //循环删除buffer当前批次数据
@@ -372,11 +385,12 @@
           let data = msg.data;
           let jsondata = JSON.parse(data);
           for (let i = 0; i < jsondata.length; i++) {
-            let singleData=JSON.parse(jsondata[i]);
+            let singleData=jsondata[i];
             for (let j = 0; j < this.echartsOption.series.length; j++) {
               if(singleData.hasOwnProperty('hero')) {
 
                 if (this.echartsOption.series[j].name === singleData.hero) {
+                  console.log(singleData)
                   this.dataBuffer.push(singleData);
                 }
               }
