@@ -5,6 +5,7 @@
       size="small"
       type="daterange"
       value-format="yyyy-MM-dd"
+      :picker-options="dateOptions"
       range-separator="至"
       start-placeholder="开始日期"
       end-placeholder="结束日期"
@@ -61,6 +62,17 @@ export default {
   },
   data() {
     let groupId = new Date().getTime();
+    const dateShortcuts = []
+    for (let i = 2020; i > 2010; i--) {
+      let option = {}
+      option['text'] = i + ''
+      option['onClick'] = function (picker) {
+        const start = new Date(i, 0, 1)
+        const end = new Date(i, 11, 31)
+        picker.$emit('pick', [start, end])
+      }
+      dateShortcuts.push(option)
+    }
     this.createWspath = this.createWspath + groupId;
     return {
       myChart: null,
@@ -69,6 +81,7 @@ export default {
       groupId: groupId,
       topic: "siteMessage",
       dateValue: [],
+      dateOptions: {shortcuts: dateShortcuts},
       load: false,
     };
   },
