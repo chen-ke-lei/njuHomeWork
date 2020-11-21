@@ -22,7 +22,10 @@ public class SparkApp {
             CommandLine commandLine = parser.parse(options, args);
 
             String master = commandLine.getOptionValue("m", "local[4]");
-            String jobStr = commandLine.getOptionValue("j", "StreamSiteMessage,StreamPlayerWinGame");
+          //  String jobStr = commandLine.getOptionValue("j", "StreamSiteMessage,StreamPlayerWinGame");
+            // String defaultJobs = "StreamHeroMessage,StreamHeroWinRate,StreamPlayerWinGame,StreamSiteMessage";
+            String defaultJobs = "StreamHeroMessage,StreamPlayerWinGame";
+            String jobStr = commandLine.getOptionValue("j", defaultJobs);
             String[] jobs = jobStr.split(",");
             if (commandLine.hasOption("c")) {
                 FileUtil.CHECK_POINT_PATH = commandLine.getOptionValue("c");
@@ -32,7 +35,7 @@ public class SparkApp {
                 FileUtil.SOURCE_PATH = commandLine.getOptionValue("s");
             }
 
-            SparkConf conf = new SparkConf().setAppName("LOLAnal").setMaster(master);
+            SparkConf conf = new SparkConf().setAppName("LOLAnalStream").setMaster(master);
             conf.set("spark.streaming.concurrentJobs", String.valueOf(jobStr.length()));
             conf.set("spark.scheduler.mode", "FAIR");
             conf.set("spark.streaming.stopGracefullyOnShutdown", "true");
@@ -43,7 +46,7 @@ public class SparkApp {
 
 //            Thread matchProducer = new Thread(new MatchProducer());
 //            matchProducer.start();
-            System.out.println("----------Match producer starts----------");
+//            System.out.println("----------Match producer starts----------");
 
             // StreamJobBuilder job = new StreamTeamWinRate(jssc);
             // StreamJobBuilder job = new StreamHeroMessage(jssc);

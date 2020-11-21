@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import webserver.handle.HeroMatchesHandle;
 import webserver.handle.PlayerWinHandle;
 import webserver.handle.SiteMessageHandle;
 import webserver.kafka.ConditionProducer;
@@ -34,6 +35,8 @@ public class ConsumerController {
     SiteMessageHandle siteMessageHandle;
     @Autowired
     PlayerWinHandle playerWinHandle;
+    @Autowired
+    HeroMatchesHandle heroMatchesHandle;
 
     private static final Map<String, ControllableConsumer> consumers = new ConcurrentHashMap<>();
     private static final Map<String, ConditionProducer> producers = new ConcurrentHashMap<>();
@@ -86,7 +89,11 @@ public class ConsumerController {
                         MessageSocket.sendMessage(socketname, siteMessageHandle.handle(records).values().toString());
                         return null;
                     } else if (socketname.startsWith("playerWin")) {
+                        System.out.println("22112");
                         MessageSocket.sendMessage(socketname, playerWinHandle.handle(records));
+                        return null;
+                    } else if (socketname.startsWith("heroMatches")) {
+                        MessageSocket.sendMessage(socketname, heroMatchesHandle.handle(records));
                         return null;
                     }
                     List<String> recordStrs = new ArrayList<>();

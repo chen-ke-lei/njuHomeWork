@@ -1,7 +1,5 @@
 package webserver.socket;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import webserver.controller.ConsumerController;
 import webserver.util.KafKaUtil;
@@ -26,8 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @ServerEndpoint("/websocket/{socketname}")
 public class MessageSocket {
-
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     /**
      * 以通道名称为key，连接会话为对象保存起来
@@ -87,7 +83,7 @@ public class MessageSocket {
 
     @OnError
     public void onError(Session session, Throwable error) {
-        logger.info("服务端发生了错误" + error.getMessage());
+        System.out.println("服务端发生了错误" + error.getMessage());
     }
 
     /**

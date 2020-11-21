@@ -33,16 +33,24 @@ public class ConditionProducer implements Runnable {
             JSONObject jsonObject = JSONObject.parseObject(content);
             JSONArray player = jsonObject.getJSONObject("blue_team").getJSONArray("players");
             for (Object o : player) {
-                if (msg.getHero().equals(((JSONObject) o).getString("hero_id"))
-                        || msg.getHero().equals(((JSONObject) o).getString("hero_name")))
+                String heroId = ((JSONObject) o).getString("hero_id");
+                String heroName = ((JSONObject) o).getString("hero_name");
+                if (msg.getHero().contains(heroId) || msg.getHero().contains(heroName))
                     return true;
+//                if (msg.getHero().equals(((JSONObject) o).getString("hero_id"))
+//                        || msg.getHero().equals(((JSONObject) o).getString("hero_name")))
+//                    return true;
             }
 
             player = jsonObject.getJSONObject("red_team").getJSONArray("players");
             for (Object o : player) {
-                if (msg.getHero().equals(((JSONObject) o).getString("hero_id"))
-                        || msg.getHero().equals(((JSONObject) o).getString("hero_name")))
+                String heroId = ((JSONObject) o).getString("hero_id");
+                String heroName = ((JSONObject) o).getString("hero_name");
+                if (msg.getHero().contains(heroId) || msg.getHero().contains(heroName))
                     return true;
+//                if (msg.getHero().equals(((JSONObject) o).getString("hero_id"))
+//                        || msg.getHero().equals(((JSONObject) o).getString("hero_name")))
+//                    return true;
             }
         } catch (Exception e) {
             e.printStackTrace();

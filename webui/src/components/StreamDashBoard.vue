@@ -1,10 +1,10 @@
 <template>
   <div>
     <el-row>
-      <el-col :span="10">
+      <el-col :span="14">
         <HeroMatches></HeroMatches>
       </el-col>
-      <el-col :span="10">
+      <el-col :span="6">
         <SiteMessage></SiteMessage>
       </el-col>
     </el-row>
