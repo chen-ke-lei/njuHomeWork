@@ -309,3 +309,7 @@ spark-streaming/.idea/libraries/Maven__com_carrotsearch_hppc_0_7_2.xml
 spark-streaming/.idea/libraries/Maven__com_alibaba_fastjson_1_2_74.xml
 spark-streaming/.idea/libraries/Maven__antlr_antlr_2_7_7.xml
 spark-streaming/.idea/compiler.xml
+spark-streaming/.idea/libraries/Maven__org_apache_httpcomponents_httpcore_4_2_4.xml
+spark-streaming/.idea/libraries/Maven__org_apache_httpcomponents_httpclient_4_2_5.xml
+spark-streaming/.idea/libraries/Maven__commons_codec_commons_codec_1_9.xml
+spark-streaming/.idea/libraries/Maven__com_google_code_gson_gson_2_2_4.xml
