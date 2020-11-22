@@ -59,12 +59,12 @@
     props: {
       createWspath: {
         type: String,
-        default: "ws://192.168.0.100:8080/websocket/heroWinRate_",
+        default: "ws://localhost:8080/websocket/heroWinRate_",
       },
 
       serviceHost: {
         type: String,
-        default: "http://192.168.0.100:8080",
+        default: "http://localhost:8080",
       },
     },
 
