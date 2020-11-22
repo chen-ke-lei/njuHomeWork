@@ -13,6 +13,7 @@
         <HeroWinRate></HeroWinRate>
       </el-col>
       <el-col :span="7"></el-col>
+        <player-win></player-win>
     </el-row>
   </div>
 </template>
@@ -21,9 +22,10 @@
   import HeroMatches from './HeroMatches'
   import SiteMessage from './SiteMessage'
   import HeroWinRate from './HeroWinRate'
+  import PlayerWin from './PlayerWin'
   export default {
     name: 'StreamDashBoard',
-    components: {HeroWinRate, SiteMessage, HeroMatches}
+    components: {HeroWinRate, SiteMessage, HeroMatches,PlayerWin}
   }
 </script>
 
