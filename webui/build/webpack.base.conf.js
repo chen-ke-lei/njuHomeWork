@@ -2,6 +2,7 @@
 const path = require('path')
 const utils = require('./utils')
 const config = require('../config')
+require("babel-polyfill")
 const vueLoaderConfig = require('./vue-loader.conf')
 
 function resolve (dir) {
