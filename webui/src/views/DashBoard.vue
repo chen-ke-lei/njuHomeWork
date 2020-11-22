@@ -1,8 +1,7 @@
 <template>
   <el-container>
     <el-header style="padding: 0">
-      <el-menu :default-active="this.$route.name"
-               @select="navigation"
+      <el-menu @select="navigation"
                mode="horizontal"
                background-color="#6a005f"
                text-color="#ffffff">
@@ -10,10 +9,10 @@
         <el-submenu index="graph">
           <template slot="title">Graph</template>
           <el-menu-item index="graph-one">
-            Graph1
+            Player vs. Hero
           </el-menu-item>
           <el-menu-item index="graph-two">
-            Graph2
+            Player vs. Player
           </el-menu-item>
         </el-submenu>
       </el-menu>
@@ -34,7 +33,7 @@
             this.$router.push('/')
             break
           case 'graph-one':
-            this.$router.push('/')
+            this.$router.push('/ph_graph')
             break
           case 'graph-two':
             this.$router.push('/')

@@ -1,6 +1,5 @@
 <template>
   <div id="heroMatches">
-    <span style="font-size: 8px">英雄出场次数</span>
     <el-date-picker
       v-model="queryDates"
       type="daterange"
@@ -11,8 +10,7 @@
       end-placeholder="结束日期"
       :editable=true
       :picker-options="yearOptions"
-      size="mini"
-      style="width: 240px"
+      size="small"
     >
     </el-date-picker>
     <br/>
@@ -32,6 +30,10 @@
     >
       stop
     </el-button>
+    <br/>
+    <div style="padding-left: 100px; float: left">
+      <span style="color: #2F4F4F; font-size: 15px; font-weight: bold">英雄出场次数</span>
+    </div>
   </div>
 </template>
 
@@ -54,7 +56,7 @@
       top: 20,
       bottom: 0
     },
-    ColorClass: ['A', 'B', 'C', 'D', 'E', 'F'],
+    ColorClass: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
     IntervalTime: 0.33333,
     XTicks: 10
   }
@@ -475,6 +477,18 @@
     fill: rgb(255, 255, 255);
     font-size: 13pt;
     font-weight: 800;
+  }
+
+  .I {
+    fill: gold;
+  }
+
+  .H {
+    fill: darkmagenta;
+  }
+
+  .G {
+    fill: cyan;
   }
 
   .F {
