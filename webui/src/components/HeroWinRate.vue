@@ -59,12 +59,12 @@
     props: {
       createWspath: {
         type: String,
-        default: "ws://192.168.0.101:8080/websocket/heroWinRate_",
+        default: "ws://192.168.0.100:8080/websocket/heroWinRate_",
       },
 
       serviceHost: {
         type: String,
-        default: "http://192.168.0.101:8080",
+        default: "http://192.168.0.100:8080",
       },
     },
 
@@ -115,10 +115,10 @@
           },
           xAxis: {
             name: '时间',
-            nameTextStyle: {
+/*            nameTextStyle: {
               fontWeight: 600,
               fontSize: 18
-            },
+            },*/
             type: 'category',
             boundaryGap: false,
             data: this.date,	// 绑定实时数据数组
@@ -140,25 +140,45 @@
           tooltip: {
             trigger: 'axis',
           },
+          dataZoom:[{
+            type: 'slider',
+            xAxisIndex: 0,
+            filterMode: 'empty'
+          },
+            {
+              type: 'slider',
+              yAxisIndex: 0,
+              filterMode: 'empty'
+            },
+            {
+              type: 'inside',
+              xAxisIndex: 0,
+              filterMode: 'empty'
+            },
+            {
+              type: 'inside',
+              yAxisIndex: 0,
+              filterMode: 'empty'
+            }],
           series: [
             /*{
-              name:'1',
-              type:'line',
-              smooth: false,
-              data: this.yieldRate,	// 绑定实时数据数组
-            },
-            {
-              name:'2',
-              type:'line',
-              smooth: false,
-              data: [],	// 绑定实时数据数组
-            },
-            {
-              name:'3',
-              type:'line',
-              smooth: false,
-              data: [],	// 绑定实时数据数组
-            },*/
+             name:'1',
+             type:'line',
+             smooth: false,
+             data: this.yieldRate,	// 绑定实时数据数组
+           },
+           {
+             name:'2',
+             type:'line',
+             smooth: false,
+             data: [],	// 绑定实时数据数组
+           },
+           /*{
+          name:'3',
+             type:'line',
+             smooth: false,
+             data: [],	// 绑定实时数据数组
+           },*/
           ]
         }
       }
@@ -202,11 +222,11 @@
           this.echartsOption.series=newSeries;
           this.date=[];
           this.dataBuffer=[];
-          this.echartsOption.xAxis=this.date;
+          this.echartsOption.xAxis.data=this.date;
           this.myChart.setOption(this.echartsOption);
           /*setInterval(this.test1, 1500);*/
 
-          this.bufferTimer = setInterval(this.processBuffer, 5000)
+          this.bufferTimer = setInterval(this.processBuffer, 2000)
 
           this.$http
             .post(this.serviceHost + "/start_consumer", data)
@@ -249,7 +269,9 @@
         if (this.dataBuffer.length > 0) {
           let batch = this.dataBuffer.length >= 20 ? 20 : this.dataBuffer.length;
 
-          let hasChange=false;
+          let size=this.date.length;
+          //console.log(size);
+
 
           //初始化最近的日期
           let latestTime;
@@ -277,12 +299,13 @@
 
                   //记录胜率
                   this.echartsOption.series[j].data.push((this.dataBuffer[i].winRate * 100).toFixed(3));
-                  hasChange=true;
+                  if(size==this.date.length)
+                  size=size+1;
 
-                  //判断最新时间是否可以更新
-                  if (latestTime < this.dataBuffer[i].updateTime) {
+
+
                     latestTime = this.dataBuffer[i].updateTime;
-                  }
+
 
 
                }else{
@@ -290,7 +313,9 @@
                     ||this.dataBuffer[i].winRate!=this.echartsOption.series[j].data[this.echartsOption.series[j].data.length-1]){
                     //记录胜率
                     this.echartsOption.series[j].data.push((this.dataBuffer[i].winRate * 100).toFixed(3));
-                    hasChange=true;
+                    //console.log(this.echartsOption.series[j].name+": "+(this.dataBuffer[i].winRate * 100).toFixed(3));
+                    if(size==this.date.length)
+                    size=size+1;
                   }
                 }
                 break;
@@ -299,12 +324,13 @@
             }
 
             //如果当前批次没有该英雄的胜率数据
-            if(c===batch&&hasChange){
+            if(c===batch&&size>this.date.length){
 
               //如果该英雄目前还没有胜率数据，设为0
               if(this.echartsOption.series[j].data.length===0){
                 //console.log(this.echartsOption.series[j].name+": "+0);
-                this.echartsOption.series[j].data.push(0);
+                //没有胜率数据就push字符串“x”
+                this.echartsOption.series[j].data.push("x");
               }
 
               //如果该英雄有数据，则取最近一次胜率数据，保持不变
@@ -318,9 +344,25 @@
           }
 
           //添加最新时间为横坐标值
+          for (let h=0;h<this.echartsOption.series.length;h++){
+            if (this.echartsOption.series[h].data.length<size){
+              //console.log(this.echartsOption.series[h].name+":"+this.echartsOption.series[h].data[size-2])
+              if(this.echartsOption.series[h].data.length>0)
+              this.echartsOption.series[h].data.push(this.echartsOption.series[h].data[this.echartsOption.series[h].data.length-1]);
+              else
+                this.echartsOption.series[h].data.push("x" );
+            }
+          }
+          if (this.date.length===0||latestTime>this.date[size-2])
           this.date.push(latestTime);
+          else {
+            this.date.push((parseInt(latestTime)+1).toString());
+          }
+/*          console.log(this.date[size-1]);*/
+/*          this.date.push(20120520);*/
           this.echartsOption.xAxis.data = this.date;
-
+          //console.log(this.echartsOption.xAxis.data);
+          //console.log(this.echartsOption.series[0].data[size-1]);
           //绘制折线图
           //console.log(latestTime);
           this.myChart.setOption(this.echartsOption);
@@ -353,21 +395,26 @@
       },
 
       test1(){
-        let testData=[{"winRate":0.5,"updateTime":2011},
-          {"winRate":0.6,"updateTime":2012},
-          {"winRate":0.2,"updateTime":2012.06},
-          {"winRate":0.7,"updateTime":2018},
-          {"winRate":0.53,"updateTime":2015},
-          {"winRate":0.61,"updateTime":2014},
-          {"winRate":0.55,"updateTime":2013},
-          {"winRate":0.42,"updateTime":2019},
-          {"winRate":0.88,"updateTime":2020},
-          {"winRate":0.37,"updateTime":2019.05},]
+        let testData=[{"winRate":0.5,"updateTime":"20120520"},
+          {"winRate":-0.6,"updateTime":"20130204"},
+          {"winRate":0,"updateTime":"20150530"},
+          {"winRate":0.7,"updateTime":"20160321"},
+          {"winRate":0.53,"updateTime":"20161111"},
+          {"winRate":-0.61,"updateTime":"20170614"},
+          {"winRate":0.55,"updateTime":"20171221"},
+          {"winRate":0.02,"updateTime":"20180503"},
+          {"winRate":0.18,"updateTime":"20190905"},
+          {"winRate":0,"updateTime":"20200202"},]
 
 
 
 
         this.yieldRate.push((testData[Math.floor(Math.random()*10)].winRate * 100).toFixed(3));
+        if(this.yieldRate.length>5){
+          this.echartsOption.series[1].data.push((testData[Math.floor(Math.random()*10)].winRate * 100).toFixed(3))
+        }
+        else
+          this.echartsOption.series[1].data.push("abc");
         this.date.push(testData[Math.floor(Math.random()*10)].updateTime);
         // 重新将数组赋值给echarts选项
         this.echartsOption.xAxis.data = this.date;
@@ -390,7 +437,7 @@
               if(singleData.hasOwnProperty('hero')) {
 
                 if (this.echartsOption.series[j].name === singleData.hero) {
-                  console.log(singleData)
+                  //console.log(singleData)
                   this.dataBuffer.push(singleData);
                 }
               }

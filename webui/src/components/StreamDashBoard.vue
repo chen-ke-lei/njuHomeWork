@@ -9,10 +9,10 @@
       </el-col>
     </el-row>
     <el-row>
-      <el-col :span="10">
+      <el-col :span="13">
         <HeroWinRate></HeroWinRate>
       </el-col>
-      <el-col :span="10"></el-col>
+      <el-col :span="7"></el-col>
     </el-row>
   </div>
 </template>
