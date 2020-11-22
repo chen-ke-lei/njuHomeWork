@@ -32,7 +32,7 @@
     </el-button>
     <br/>
     <div style="padding-left: 100px; float: left">
-      <span style="color: #2F4F4F; font-size: 15px; font-weight: bold">英雄出场次数</span>
+      <span style="color: #2F4F4F; font-size: 12px; font-weight: bold">英雄出场次数</span>
     </div>
   </div>
 </template>
