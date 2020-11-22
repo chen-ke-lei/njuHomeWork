@@ -84,9 +84,17 @@ public class PlayerWinHandle {
         }
         System.out.println(wordFrequencies);
         wordCloud.build(wordFrequencies);
-        String date=new Date().toString();
-        wordCloud.writeToFile("/Users/Trayvon/Desktop/test/test" +date + ".png");
-        return "success";
+      //  String date=new Date().toString();
+        //     wordCloud.writeToFile("/Users/Trayvon/Desktop/test/test" +date + ".png");
+
+        //转换为base64返回
+        ByteArrayOutputStream outputStream=new ByteArrayOutputStream();//io流
+        wordCloud.writeToStreamAsPNG(outputStream);//写入流中
+        byte[] bytes = outputStream.toByteArray();//转换成字节
+        BASE64Encoder encoder = new BASE64Encoder();
+        String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
+        png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
+        return png_base64;
     }
     public static String imageToBase64Str() {
         InputStream inputStream = null;

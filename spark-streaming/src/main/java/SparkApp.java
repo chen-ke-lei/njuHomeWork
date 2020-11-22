@@ -22,8 +22,13 @@ public class SparkApp {
             CommandLine commandLine = parser.parse(options, args);
 
             String master = commandLine.getOptionValue("m", "local[4]");
+
             // String defaultJobs = "StreamHeroMatches,StreamHeroWinRate,StreamPlayerWinGame,StreamSiteMessage";
             String defaultJobs = "StreamHeroMatches,StreamPlayerWinGame,StreamHeroWinRate,StreamSiteMessage";
+
+          //  String jobStr = commandLine.getOptionValue("j", "StreamSiteMessage,StreamPlayerWinGame");
+            // String defaultJobs = "StreamHeroMessage,StreamHeroWinRate,StreamPlayerWinGame,StreamSiteMessage";
+
             String jobStr = commandLine.getOptionValue("j", defaultJobs);
             String[] jobs = jobStr.split(",");
             if (commandLine.hasOption("c")) {
