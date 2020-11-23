@@ -1,6 +1,5 @@
 <template>
   <div id="heroWinRate">
-    <span style="font-size: 8px">英雄胜率</span>
     <el-date-picker
       v-model="queryDates"
       type="daterange"
@@ -47,6 +46,10 @@
     >
       stop
     </el-button>
+    <br/>
+    <div style="padding-left: 100px; float: left">
+      <span style="color: #2F4F4F; font-size: 12px; font-weight: bold">英雄胜率</span>
+    </div>
     <div id="myChart"></div>
   </div>
 
