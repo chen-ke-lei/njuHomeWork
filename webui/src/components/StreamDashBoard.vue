@@ -9,10 +9,10 @@
       </el-col>
     </el-row>
     <el-row>
-      <el-col :span="13">
+      <el-col :span="12">
         <HeroWinRate></HeroWinRate>
       </el-col>
-      <el-col :span="7"></el-col>
+      <el-col :span="8"></el-col>
         <player-win></player-win>
     </el-row>
   </div>
