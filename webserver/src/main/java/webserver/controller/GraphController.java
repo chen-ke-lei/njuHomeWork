@@ -28,11 +28,28 @@ public class GraphController {
         if (players != null) conditions.put("players", players);
         if (heroes != null) conditions.put("heroes", heroes);
         if (lowerWins != null) conditions.put("lowerWins", lowerWins);
+        if (lowerMatches == null) conditions.put("lowerMatches", PlayerHeroGraph.lowestMatches);
+        else conditions.put("lowerMatches", lowerMatches > PlayerHeroGraph.lowestMatches ? lowerMatches : PlayerHeroGraph.lowestMatches);
+
+        if (graph.equals("player_hero")) {
+            JSONObject graphinfo = playerHeroGraph.graph2JSON(playerHeroGraph.getGraph(conditions));
+            return new ResultMsg(ResultMsg.SUCCESS, "", graphinfo);
+        }
+        return new ResultMsg(ResultMsg.FAILURE, "graph not exists");
+    }
+
+    @GetMapping("/get_degrees")
+    public ResultMsg getDegrees(@RequestParam String graph,
+                                @RequestParam(required = false) Integer lowerWins,
+                                @RequestParam(required = false) Integer lowerMatches)
+    {
+        Map<String, Object> conditions = new HashMap<>();
+        if (lowerWins != null) conditions.put("lowerWins", lowerWins);
         if (lowerMatches != null) conditions.put("lowerMatches", lowerMatches);
 
         if (graph.equals("player_hero")) {
-            JSONObject graphinfo = playerHeroGraph.toJSON(playerHeroGraph.getGraph(conditions));
-            return new ResultMsg(ResultMsg.SUCCESS, "", graphinfo);
+            JSONObject degreeinfo = playerHeroGraph.getDegrees(conditions);
+            return new ResultMsg(ResultMsg.SUCCESS, "", degreeinfo);
         }
         return new ResultMsg(ResultMsg.FAILURE, "graph not exists");
     }
