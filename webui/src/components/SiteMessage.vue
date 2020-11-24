@@ -49,11 +49,11 @@ export default {
     },
     createWspath: {
       type: String,
-      default: "ws://localhost:8080/websocket/siteMessage_",
+      default: "ws://192.168.0.100:8080/websocket/siteMessage_",
     },
     serviceHost: {
       type: String,
-      default: "http://localhost:8080",
+      default: "http://192.168.0.100:8080",
     },
     title: {
       type: String,

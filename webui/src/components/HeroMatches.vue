@@ -395,7 +395,7 @@
           alert('当前浏览器不支持WebSocket')
           return
         }
-        this.socket = new WebSocket('ws://localhost:8080/websocket/' + this.topic + '_' + this.groupId)
+        this.socket = new WebSocket('ws://192.168.0.100:8080/websocket/' + this.topic + '_' + this.groupId)
         this.socket.onopen = function () {
           console.log('socket 创建成功')
         }

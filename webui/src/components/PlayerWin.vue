@@ -35,7 +35,7 @@
     <div style="padding-left: 100px; float: left">
       <span style="color: #2F4F4F; font-size: 12px; font-weight: bold">选手胜场次数</span>
     </div>
-    <div id="pic">
+    <div id="pic" style="margin-left: 35px">
       <img :src="qrcode">
     </div>
   </div>
