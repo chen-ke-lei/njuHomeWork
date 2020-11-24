@@ -100,6 +100,9 @@ public class PlayerHeroGraph implements Serializable {
                 .stream()
                 .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
         this.graph = getPageRank(this.graph);
+        System.out.println("Player Hero Graph" + "\r\n"
+                + "vertices: " + vertices.size() + "\r\n"
+                + "edges: " + edges.size());
     }
 
     public Graph<JSONObject, JSONObject> getPageRank(Graph<JSONObject, JSONObject> graph) {

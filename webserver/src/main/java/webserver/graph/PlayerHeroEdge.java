@@ -58,7 +58,7 @@ public class PlayerHeroEdge {
                     for (int i = 0; i < blue.getJSONArray("players").size(); i++) {
                         JSONObject player = (JSONObject) blue.getJSONArray("players").get(i);
                         JSONObject rec = new JSONObject();
-                        String playerName = player.getString("player_name");
+                        String playerName = player.getString("player_name").toLowerCase();
                         rec.put("playerId", player.getString("player_id"));
                         rec.put("playerName", playerName);
                         rec.put("heroId", player.getString("hero_id"));
@@ -75,7 +75,7 @@ public class PlayerHeroEdge {
                     for (int i = 0; i < red.getJSONArray("players").size(); i++) {
                         JSONObject player = (JSONObject) red.getJSONArray("players").get(i);
                         JSONObject rec = new JSONObject();
-                        String playerName = player.getString("player_name");
+                        String playerName = player.getString("player_name").toLowerCase();
                         rec.put("playerId", player.getString("player_id"));
                         rec.put("playerName", playerName);
                         rec.put("heroId", player.getString("hero_id"));
