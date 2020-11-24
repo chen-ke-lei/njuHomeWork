@@ -1,6 +1,5 @@
 <template>
   <div id="playerWin">
-    <span style="font-size: 8px">选手胜场词云</span>
     <el-date-picker
       v-model="queryDates"
       type="daterange"
@@ -32,6 +31,10 @@
     >
       stop
     </el-button>
+    <br/>
+    <div style="padding-left: 100px; float: left">
+      <span style="color: #2F4F4F; font-size: 12px; font-weight: bold">选手胜场次数</span>
+    </div>
     <div id="pic">
       <img :src="qrcode">
     </div>

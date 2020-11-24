@@ -142,7 +142,7 @@
       },
       processBuffer () {
         if (this.dataBuffer.length > 0) {
-          let batch = this.dataBuffer.length >= 10 ? 10 : this.dataBuffer.length
+          let batch = this.dataBuffer.length >= 30 ? 30 : this.dataBuffer.length
           for (let i = 0; i < batch; i++) {
             let heroMatches = this.dataBuffer[0]
             this.dataBuffer.shift()
@@ -484,11 +484,11 @@
   }
 
   .H {
-    fill: darkmagenta;
+    fill: cyan;
   }
 
   .G {
-    fill: cyan;
+    fill: darkmagenta;
   }
 
   .F {
