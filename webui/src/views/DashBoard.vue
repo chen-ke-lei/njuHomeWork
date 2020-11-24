@@ -36,7 +36,7 @@
             this.$router.push('/ph_graph')
             break
           case 'graph-two':
-            this.$router.push('/')
+            this.$router.push('/pp_graph')
             break
           default:
             break

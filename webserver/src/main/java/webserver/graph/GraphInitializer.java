@@ -11,10 +11,14 @@ public class GraphInitializer implements ApplicationListener<ContextRefreshedEve
     @Autowired
     private PlayerHeroGraph playerHeroGraph;
 
+    @Autowired
+    private PlayerPlayerGraph playerPlayerGraph;
+
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
         if (contextRefreshedEvent.getApplicationContext().getParent() == null) {
             playerHeroGraph.buildGraph();
+            playerPlayerGraph.buildGraph();
         }
     }
 }

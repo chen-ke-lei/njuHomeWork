@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import DashBoard from '@/views/DashBoard'
 import StreamDashBoard from '@/components/StreamDashBoard'
 import PHGraphDashBoard from '@/components/PHGraphDashBoard'
+import PPGraphDashBoard from '@/components/PPGraphDashBoard'
 
 Vue.use(Router)
 
@@ -21,6 +22,11 @@ export default new Router({
           path: 'ph_graph',
           name: 'PHGraphDashBoard',
           component: PHGraphDashBoard
+        },
+        {
+          path: 'pp_graph',
+          name: 'PPGraphDashBoard',
+          component: PPGraphDashBoard
         }
       ]
     }

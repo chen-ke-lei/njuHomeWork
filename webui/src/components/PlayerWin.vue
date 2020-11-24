@@ -41,7 +41,6 @@
 
 <script>
   // import { site_option } from "../echarts/echartsUtil.js";
-  // alert(site_option);
   export default {
     name: 'PlayerWin',
     props: {
@@ -57,7 +56,6 @@
     },
 
     mounted() {
-      alert(this.createWspath)
       this.createWs();
     },
 

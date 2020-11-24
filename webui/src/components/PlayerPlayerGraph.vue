@@ -15,25 +15,16 @@
         :value="item">
       </el-option>
     </el-select>
-    <el-select
-      v-model="queryHeroes"
-      multiple
-      collapse-tags
-      filterable
-      placeholder="请选择英雄"
-      size="mini"
-    >
-      <el-option
-        v-for="item in heroOptions"
-        :key="item"
-        :label="item"
-        :value="item">
-      </el-option>
-    </el-select>
     <span style="color: #2F4F4F; font-size: 12px; font-weight: bold">最低胜场</span>
-    <el-input-number :min="0" :precision="0" size="mini" controls-position="right" placeholder="最低胜场" v-model="lowerWins"/>
+    <el-input-number :min="0" :precision="0" size="mini" controls-position="right" placeholder="最低胜场"
+                     v-model="lowerWins"/>
     <span style="color: #2F4F4F; font-size: 12px; font-weight: bold">最低场数</span>
-    <el-input-number :min="35" :precision="0" size="mini" controls-position="right" placeholder="最低场数" v-model="lowerMatches"/>
+    <el-input-number :min="200" :precision="0" size="mini" controls-position="right" placeholder="最低场数"
+                     v-model="lowerMatches"/>
+    <!--    <span style="color: #2F4F4F; font-size: 12px; font-weight: bold">社区发现</span>-->
+    <!--    <el-switch-->
+    <!--      v-model="stronglyConnected">-->
+    <!--    </el-switch>-->
     <el-button
       plain
       size="mini"
@@ -45,7 +36,7 @@
     <span style="color: #2F4F4F; font-size: 12px; font-weight: bold">最低胜场</span>
     <el-input-number :min="0" :precision="0" size="mini" controls-position="right" placeholder="最低胜场" v-model="lowerWins_1"/>
     <span style="color: #2F4F4F; font-size: 12px; font-weight: bold">最低场数</span>
-    <el-input-number :min="0" :precision="0" size="mini" controls-position="right" placeholder="最低场数" v-model="lowerMatches_1"/>
+    <el-input-number :min="200" :precision="0" size="mini" controls-position="right" placeholder="最低场数" v-model="lowerMatches_1"/>
     <el-button
       plain
       size="mini"
@@ -53,7 +44,7 @@
     >
       query
     </el-button>
-    <div id="phBar" style="width: 950px; height: 400px"/>
+    <div id="ppBar" style="width: 950px; height: 400px"/>
   </div>
 </template>
 
@@ -61,17 +52,15 @@
   import echarts from 'echarts'
 
   export default {
-    name: 'PlayerHeroGraph',
+    name: 'PlayerPlayerGraph',
     data () {
       const players = require('../assets/players')
-      const heroes = require('../assets/heroes')
       return {
         lowerWins: 0,
         lowerMatches: 0,
         queryPlayers: [],
         playerOptions: players,
-        queryHeroes: [],
-        heroOptions: heroes,
+        stronglyConnected: false,
 
         graph: null,
         option: null,
@@ -83,8 +72,9 @@
 
         bar: null,
         barOption: null,
-        playerDegrees: [],
-        hereDegrees: [],
+        triangleCount: [],
+
+        colors: ['gold', 'darkmagenta', 'cyan', 'darkgreen', 'tan', 'darkorange', 'darkblue', 'darkred', 'steelblue']
       }
     },
     mounted () {
@@ -97,19 +87,16 @@
         this.graph = echarts.init(dom)
         this.option = {
           title: {
-            text: 'Player vs. Hero Graph',
+            text: 'Player vs. Player Graph',
             top: 'top',
             left: 'left'
           },
-          color: ['darkred', 'darkblue'],
-          legend: {data: ['player', 'hero']},
           tooltip: {
             show: false
           },
           series: [
             {
-              name: 'Player vs. Hero',
-              categories: [{name: 'player'}, {name: 'hero'}],
+              name: 'Player vs. Player',
               type: 'graph',
               layout: 'force', // 'circular'
               force: {
@@ -140,7 +127,7 @@
                 curveness: 0.3,
                 opacity: 0.7,
                 emphasis: {
-                  width: 5,
+                  width: 2,
                   color: 'source'
                 }
               },
@@ -155,7 +142,11 @@
                     show: true,
                     position: 'right',
                     formatter: function (v) {
-                      return v.name + '\r\n' + 'PR: '+  v.value.toFixed(2)
+                      let label = v.name
+                      if (v.value !== -1) {
+                        label += '\r\n' + 'Community: ' + v.value
+                      }
+                      return label
                     }
                   }
                 }
@@ -167,14 +158,15 @@
       },
       drawGraph () {
         let data = {
-          graph: 'player_hero',
+          graph: 'player_player',
           players: this.queryPlayers.join(','),
-          heroes: this.queryHeroes.join(','),
           lowerWins: this.lowerWins,
-          lowerMatches: this.lowerMatches
+          lowerMatches: this.lowerMatches,
+          stronglyConnected: this.stronglyConnected
         }
         this.$http.get('/api/get_graph', {params: data})
           .then((res) => {
+            let _this = this
             let data = res.data
             if (data.code === 'SUCCESS') {
               let graph = data.value
@@ -182,11 +174,10 @@
                 return {
                   id: '' + v.id,
                   name: v.name,
-                  value: v.PR,
-                  symbolSize: v.type === 'player' ? v.PR * 30 : v.PR * 3 / 2,
-                  category: v.type === 'player' ? 0 : 1,
+                  value: v.community,
+                  symbolSize: 12,
                   itemStyle: {
-                    color: v.type === 'player' ? 'darkred' : 'darkblue'
+                    color: v.community === -1 ? 'darkred' : _this.colors[v.community % _this.colors.length]
                   }
                 }
               })
@@ -204,28 +195,20 @@
           })
       },
       initBar () {
-        let dom = document.getElementById('phBar')
+        let dom = document.getElementById('ppBar')
         this.bar = echarts.init(dom)
         this.barOption = {
           title: [{
-            text: '选手/英雄顶点度数',
+            text: '选手三角数',
             left: 'center',
             textAlign: 'center'
           }],
           tooltip: {},
-          color: ['darkred', 'darkblue'],
-          legend: {data: ['player', 'hero']},
           grid: [{
             top: 50,
             width: '45%',
             bottom: 0,
-            left: 20,
-            containLabel: true
-          }, {
-            top: 50,
-            width: '45%',
-            bottom: 0,
-            left: '50%',
+            left: '35%',
             containLabel: true
           }],
           xAxis: [{
@@ -233,29 +216,10 @@
             splitLine: {
               show: false
             }
-          }, {
-            type: 'value',
-            gridIndex: 1,
-            splitLine: {
-              show: false
-            }
           }],
           yAxis: [{
             type: 'category',
-            data: this.playerDegrees.map(function (item) {
-              return item.name
-            }),
-            axisLabel: {
-              interval: 0,
-              rotate: 30
-            },
-            splitLine: {
-              show: false
-            }
-          }, {
-            gridIndex: 1,
-            type: 'category',
-            data: this.hereDegrees.map(function (item) {
+            data: this.triangleCount.map(function (item) {
               return item.name
             }),
             axisLabel: {
@@ -276,23 +240,8 @@
                 show: true
               }
             },
-            data: this.playerDegrees.map(function (item) {
-              return item.outDegrees
-            })
-          }, {
-            type: 'bar',
-            stack: 'component',
-            xAxisIndex: 1,
-            yAxisIndex: 1,
-            z: 3,
-            label: {
-              normal: {
-                position: 'right',
-                show: true
-              }
-            },
-            data: this.hereDegrees.map(function (item) {
-              return item.inDegrees
+            data: this.triangleCount.map(function (item) {
+              return item.count
             })
           }]
         }
@@ -300,30 +249,21 @@
       },
       drawBar () {
         let data = {
-          graph: 'player_hero',
+          graph: 'player_player',
           lowerWins: this.lowerWins_1,
           lowerMatches: this.lowerMatches_1
         }
-        this.$http.get('/api/get_degrees', {params: data})
+        this.$http.get('/api/get_trianglecount', {params: data})
           .then((res) => {
             let data = res.data
             if (data.code === 'SUCCESS') {
-              let degrees = data.value
-              this.playerDegrees = degrees.player
-              this.hereDegrees = degrees.hero
-              this.playerDegrees = this.playerDegrees.reverse()
-              this.hereDegrees = this.hereDegrees.reverse()
-              this.barOption.yAxis[0].data = this.playerDegrees.map(function (item) {
+              this.triangleCount = data.value
+              this.triangleCount = this.triangleCount.reverse()
+              this.barOption.yAxis[0].data = this.triangleCount.map(function (item) {
                 return item.name
               })
-              this.barOption.yAxis[1].data = this.hereDegrees.map(function (item) {
-                return item.name
-              })
-              this.barOption.series[0].data = this.playerDegrees.map(function (item) {
-                return item.outDegrees
-              })
-              this.barOption.series[1].data = this.hereDegrees.map(function (item) {
-                return item.inDegrees
+              this.barOption.series[0].data = this.triangleCount.map(function (item) {
+                return item.count
               })
               this.bar.setOption(this.barOption)
             }

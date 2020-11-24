@@ -7,6 +7,7 @@ public class FileUtil {
     public static String INIT_PATH;
     public static String INIT_PATH_2;
     public static String PLAYER_HERO_EDGE_PATH;
+    public static String PLAYER_PLAYER_EDGE_PATH;
     public static String SOURCE_PATH = "/Users/Trayvon/Desktop/matches_simplified";
     // public static String SOURCE_PATH = "C:\\bigdata\\datsets\\matches_simplified";
 
@@ -15,6 +16,7 @@ public class FileUtil {
         INIT_PATH = FileUtil.class.getClassLoader().getResource("end.json").getFile();
         INIT_PATH_2=FileUtil.class.getClassLoader().getResource("endAll.json").getFile();
         PLAYER_HERO_EDGE_PATH = FileUtil.class.getClassLoader().getResource("player_hero_edge.json").getFile();
+        PLAYER_PLAYER_EDGE_PATH = FileUtil.class.getClassLoader().getResource("player_player_edge.json").getFile();
     }
 
     public static String getMatchPath(String dateStr, String matchId) {

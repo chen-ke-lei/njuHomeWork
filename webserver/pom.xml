@@ -119,6 +119,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!--解决不知道哪来的包冲突-->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+        </dependency>
     </dependencies>
 
     <build>
